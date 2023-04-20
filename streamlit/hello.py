@@ -18,81 +18,65 @@ c.execute("""CREATE TABLE IF NOT EXISTS users (
                 password_hash TEXT NOT NULL
             )""")
 
-# Page title
-st.title("SutraAI")
+# Create a sidebar menu for user registration and login
+menu_options = ["User Registration", "User Login"]
+menu_selection = st.sidebar.selectbox("Select an option", menu_options)
 
-# User registration section title
-st.header("User Registration")
-
-# Text box for new username
-new_username = st.text_input("Enter a new username:")
-
-# Password input field
-new_password = st.text_input("Enter a new password:", type="password")
-
-# Button to create new user
-if st.button("Create User"):
-    # Check if username is already taken
-    c.execute("SELECT * FROM users WHERE username=?", (new_username,))
-    result = c.fetchone()
-    if result:
-        st.error("Username already taken. Please choose a different username.")
-    else:
-        # Hash password using SHA-256 algorithm
-        password_hash = hashlib.sha256(new_password.encode()).hexdigest()
-
-        # Add new user to database
-        c.execute("INSERT INTO users (username, password_hash) VALUES (?, ?)", (new_username, password_hash))
-        conn.commit()
-
-        st.success("User created successfully.")
-
-# User login section title
-st.header("User Login")
-
-# Text box for existing username
-existing_username = st.text_input("Enter your username:")
-
-# Password input field for existing user
-existing_password = st.text_input("Enter your password:", type="password")
-
-# Button to log in user
-if st.button("Log In"):
-    # Retrieve hashed password from database for the given username
-    c.execute("SELECT password_hash FROM users WHERE username=?", (existing_username,))
-    result = c.fetchone()
-    if result:
-        # Hash the input password and compare it with the stored hash
-        password_hash = hashlib.sha256(existing_password.encode()).hexdigest()
-        if password_hash == result[0]:
-            st.success("Login successful!")
-            # Set a session variable to track the logged in user
-            st.session_state.username = existing_username
+# Register a new user
+if menu_selection == "User Registration":
+    st.sidebar.header("User Registration")
+    new_username = st.sidebar.text_input("Enter a new username")
+    new_password = st.sidebar.text_input("Enter a new password", type="password")
+    if st.sidebar.button("Create User"):
+        c.execute("SELECT * FROM users WHERE username=?", (new_username,))
+        result = c.fetchone()
+        if result:
+            st.sidebar.error("Username already taken. Please choose a different username.")
         else:
-            st.error("Incorrect password.")
-    else:
-        st.error("Username not found.")
+            password_hash = hashlib.sha256(new_password.encode()).hexdigest()
+            c.execute("INSERT INTO users (username, password_hash) VALUES (?, ?)", (new_username, password_hash))
+            conn.commit()
+            st.sidebar.success("User created successfully.")
+
+# Log in an existing user
+elif menu_selection == "User Login":
+    st.sidebar.header("User Login")
+    existing_username = st.sidebar.text_input("Enter your username")
+    existing_password = st.sidebar.text_input("Enter your password", type="password")
+    if st.sidebar.button("Log In"):
+        c.execute("SELECT password_hash FROM users WHERE username=?", (existing_username,))
+        result = c.fetchone()
+        if result:
+            password_hash = hashlib.sha256(existing_password.encode()).hexdigest()
+            if password_hash == result[0]:
+                st.sidebar.success("Login successful!")
+                st.session_state.username = existing_username
+            else:
+                st.sidebar.error("Incorrect password.")
+        else:
+            st.sidebar.error("Username not found.")
 
 # Check if user is logged in
 if "username" in st.session_state:
-    # Google Drive OAuth button
-    @st.cache(allow_output_mutation=True)
-    def get_gdrive_service():
-        credentials = service_account.Credentials.from_service_account_file('path/to/credentials.json')
-        return build('drive', 'v3', credentials=credentials)
+    st.write(f"You are logged in as {st.session_state.username}.")
 
-    if st.button("Connect Google Drive"):
-        try:
-            service = get_gdrive_service()
-            st.success("Successfully connected to Google Drive!")
-        except HttpError:
-            st.error("Unable to connect to Google Drive.")
+    # Google Drive OAuth button
+    col1, col2 = st.columns([3, 1])
+    with col1:
+        st.header("Connect to Google Drive")
+    with col2:
+        if st.button("Connect"):
+            try:
+                service = get_gdrive_service()
+                st.success("Successfully connected to Google Drive!")
+            except HttpError:
+                st.error("Unable to connect to Google Drive.")
 
     # Query section title
     st.header("Query Important Information")
 
     # Text box for user input
-    query = st.text_input("Enter your query here:")
+    query = st.text_input("Enter your query here")
 
     # Submit button
     if st.button("Search"):
