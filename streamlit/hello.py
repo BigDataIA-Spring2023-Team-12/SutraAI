@@ -7,6 +7,9 @@ from googleapiclient.errors import HttpError
 
 # Set page title and layout
 st.set_page_config(page_title="SutraAI", layout="wide")
+st.write("<h1 style='text-align: center;'>SutraAI</h1>", unsafe_allow_html=True)
+
+st.markdown("---")
 
 # Connect to SQLite database
 conn = sqlite3.connect("users.db")
