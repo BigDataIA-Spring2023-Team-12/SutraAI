@@ -56,6 +56,13 @@ elif menu_selection == "User Login":
         else:
             st.sidebar.error("Username not found.")
 
+
+# Google Drive OAuth button
+@st.cache(allow_output_mutation=True)
+def get_gdrive_service():
+    credentials = service_account.Credentials.from_service_account_file('path/to/credentials.json')
+    return build('drive', 'v3', credentials=credentials)
+
 # Check if user is logged in
 if "username" in st.session_state:
     st.write(f"You are logged in as {st.session_state.username}.")
@@ -86,6 +93,8 @@ if "username" in st.session_state:
             st.write(results)
         except HttpError:
             st.error("Unable to retrieve search results.")
+
+
 else:
     st.warning("Please log in to access Google Drive and search functionality.")
 
