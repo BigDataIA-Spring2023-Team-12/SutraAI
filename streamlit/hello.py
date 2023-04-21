@@ -11,15 +11,26 @@ st.write("<h1 style='text-align: center;'>SutraAI</h1>", unsafe_allow_html=True)
 
 st.markdown("---")
 
-# Connect to SQLite database
-conn = sqlite3.connect("users.db")
-c = conn.cursor()
+def connect_to_database():
+    """
+    Creates a connection to the SQLite database and creates the users table if it doesn't exist.
 
-# Create users table if it doesn't exist
-c.execute("""CREATE TABLE IF NOT EXISTS users (
-                username TEXT PRIMARY KEY,
-                password_hash TEXT NOT NULL
-            )""")
+    Returns:
+        A tuple containing the database connection and cursor.
+    """
+    conn = sqlite3.connect("users.db")
+    c = conn.cursor()
+
+    # Create users table if it doesn't exist
+    c.execute("""CREATE TABLE IF NOT EXISTS users (
+                    username TEXT PRIMARY KEY,
+                    password_hash TEXT NOT NULL
+                )""")
+    
+    return conn, c
+
+# Connect to SQLite database
+conn, c = connect_to_database()
 
 # Create a sidebar menu for user registration and login
 menu_options = ["User Registration", "User Login"]
