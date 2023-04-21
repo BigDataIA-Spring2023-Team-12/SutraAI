@@ -2,6 +2,7 @@ import sqlite3
 import hashlib
 import streamlit as st
 from google.oauth2 import service_account
+import pandas as pd
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 
@@ -12,11 +13,17 @@ c = conn.cursor()
 
 def create_users_table():
     """
-    Creates the users table in the database if it doesn't exist.
+    Creates the users table and history table in the database if it doesn't exist.
     """
     c.execute("""CREATE TABLE IF NOT EXISTS users (
                     username TEXT PRIMARY KEY,
                     password_hash TEXT NOT NULL
+                )""")
+    conn.commit()
+
+    c.execute("""CREATE TABLE IF NOT EXISTS history (
+                    username TEXT PRIMARY KEY,
+                    queries TEXT
                 )""")
     conn.commit()
 
@@ -146,6 +153,20 @@ def file_upload():
 
 
 
+
+def log_queries(user,query):
+    c.execute("INSERT INTO history (username, queries) VALUES (?,?)", (user,query))
+    conn.commit()
+
+def get_search_history(user):
+    c.execute("SELECT queries FROM history WHERE username=?", (user,))
+    results = c.fetchall()
+    return results
+
+
+
+
+
 def main():
     """
     Main function that runs the application.
@@ -199,15 +220,32 @@ def main():
 
         # Text box for user input
         query = st.text_input("Enter your query here")
+        user = st.session_state.username
+
+        
 
         # Submit button
         if st.button("Search"):
             try:
+                log_queries(user,query)
+
                 # TODO: implement search functionality using query and Google Drive API
+                
                 results = []
                 st.write(results)
             except HttpError:
                 st.error("Unable to retrieve search results.")
+
+        
+        # Access your query history
+        elif st.button("Access Search history"):
+            st.header("Search history")
+            history = get_search_history(user)
+            history_df = pd.DataFrame(history, columns=["Past Queries"])
+    
+            st.dataframe(history_df)
+            
+
 
 
     else:
