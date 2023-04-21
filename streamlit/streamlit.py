@@ -22,8 +22,10 @@ def create_users_table():
     conn.commit()
 
     c.execute("""CREATE TABLE IF NOT EXISTS history (
-                    username TEXT PRIMARY KEY,
-                    queries TEXT
+                    id INTEGER PRIMARY KEY,
+                    username TEXT,
+                    queries TEXT,
+                    FOREIGN KEY(username) REFERENCES users(username)
                 )""")
     conn.commit()
 
@@ -238,13 +240,16 @@ def main():
 
         
         # Access your query history
-        elif st.button("Access Search history"):
+        
+        if st.button("Access Search history"):
             st.header("Search history")
             history = get_search_history(user)
-            history_df = pd.DataFrame(history, columns=["Past Queries"])
-    
-            st.dataframe(history_df)
-            
+            if len(history) > 0:
+                history_df = pd.DataFrame(history)
+                st.table(history_df)
+            else:
+                st.write("No search history available.")
+                
 
 
 
