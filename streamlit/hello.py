@@ -66,6 +66,17 @@ def get_gdrive_service():
     credentials = service_account.Credentials.from_service_account_file('path/to/credentials.json')
     return build('drive', 'v3', credentials=credentials)
 
+
+# Function to get Google Drive API service
+@st.cache(allow_output_mutation=True)
+def upload_service():
+    creds = st.secrets["creds"]
+    scope = ["https://www.googleapis.com/auth/drive"]
+    creds = service_account.Credentials.from_service_account_info(creds, scopes=scope)
+    drive_service = build("drive", "v3", credentials=creds)
+    return drive_service
+
+
 # Check if user is logged in
 if "username" in st.session_state:
     st.write(f"You are logged in as {st.session_state.username}.")
@@ -81,6 +92,21 @@ if "username" in st.session_state:
                 st.success("Successfully connected to Google Drive!")
             except HttpError:
                 st.error("Unable to connect to Google Drive.")
+    
+    # File upload section
+    st.header("File Upload")
+
+    # Select file to upload
+    file = st.file_uploader("Choose a file")
+    if file is not None:
+        try:
+            # Create a file in Google Drive
+            file_metadata = {"name": file.name}
+            media = {"media": file}
+            file = upload_service.files().create(body=file_metadata, media_body=media, fields="id").execute()
+            st.success(f"File '{file_metadata['name']}' uploaded successfully!")
+        except HttpError:
+            st.error("Unable to upload file to Google Drive.")
 
     # Query section title
     st.header("Query Important Information")
