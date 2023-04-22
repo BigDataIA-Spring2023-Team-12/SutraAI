@@ -1,40 +1,46 @@
 import os
-import docx2txt
-import PyPDF2
-from bs4 import BeautifulSoup
-import io
 import json
-import csv
-from pdfminer.high_level import extract_text as pdf_extract_text
 
-def extract_text_from_file(file_path):
+
+def extract_text_from_file(file_path: str) -> str:
     """
-    This function takes a file path as input, recognizes the file format, and extracts the text from the file.
+    Extracts text from a file and returns it as a string.
 
     Args:
-        file_path (str): The path of the file to be processed.
+        file_path (str): The path to the file to extract text from.
 
     Returns:
-        str: The text extracted from the file.
+        str: The extracted text as a string.
+
+    Raises:
+        ValueError: If the file format is not supported.
+
     """
 
-    # Get file extension
-    file_ext = os.path.splitext(file_path)[1].lower()
+    # Extract the file extension
+    file_extension = os.path.splitext(file_path)[1].lower()
 
-    if file_ext == '.docx':
-        text = docx2txt.process(file_path)
-    elif file_ext == '.pdf':
-        with open(file_path, 'rb') as f:
-            text = pdf_extract_text(f)
-    elif file_ext == '.txt':
-        with open(file_path, 'r') as f:
-            text = f.read()
-    elif file_ext == '.html' or file_ext == '.xml' or file_ext == '.json' or file_ext == '.csv':
-        with open(file_path, 'r') as f:
-            soup = BeautifulSoup(f.read(), 'html.parser')
+    # Determine the appropriate text extraction method based on the file extension
+    if file_extension == '.pdf':
+        import PyPDF2
+        with open(file_path, 'rb') as pdf_file:
+            pdf_reader = PyPDF2.PdfReader(pdf_file)
+            text = ''
+            for page in pdf_reader.pages:
+                text += page.extract_text()
+    elif file_extension == '.json':
+        with open(file_path, 'r') as json_file:
+            json_data = json.load(json_file)
+            text = json.dumps(json_data)
+    elif file_extension in ['.csv', '.txt', '.doc', '.odt']:
+        with open(file_path, 'r') as file:
+            text = file.read()
+    elif file_extension == '.html':
+        from bs4 import BeautifulSoup
+        with open(file_path, 'r') as html_file:
+            soup = BeautifulSoup(html_file, 'html.parser')
             text = soup.get_text()
     else:
-        raise ValueError('Invalid file format')
+        raise ValueError(f"File format '{file_extension}' is not supported.")
 
-    return text.strip()
-
+    return text
