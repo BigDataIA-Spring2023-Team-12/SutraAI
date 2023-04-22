@@ -3,13 +3,29 @@ import hashlib
 import streamlit as st
 from google.oauth2 import service_account
 import pandas as pd
+import os    
+from google_auth_oauthlib.flow import Flow
 from googleapiclient.discovery import build
+from google.oauth2.credentials import Credentials
 from googleapiclient.errors import HttpError
 
 
 # Connect to SQLite database
 conn = sqlite3.connect("users.db")
 c = conn.cursor()
+
+# credential_path = "client_secret.json"
+# os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = credential_path
+
+# Set up the OAuth flow
+SCOPES = ["https://www.googleapis.com/auth/drive.metadata.readonly"]
+FLOW = Flow.from_client_secrets_file(
+    "client_secret.json",
+    scopes=SCOPES,
+    redirect_uri="urn:ietf:wg:oauth:2.0:oob",
+)
+
+
 
 def create_users_table():
     """
@@ -81,7 +97,7 @@ def get_gdrive_service():
     Raises:
         HttpError: If an error occurs while building the API service instance.
     """
-    credentials = service_account.Credentials.from_service_account_file('path/to/credentials.json')
+    credentials = Credentials.from_service_account_file('client_secret.json')
     try:
         service = build('drive', 'v3', credentials=credentials)
         return service
@@ -167,6 +183,70 @@ def get_search_history(user):
 
 
 
+st.cache(allow_output_mutation=True, suppress_st_warning=True)
+def get_credentials():
+    """
+    Retrieve or generate credentials and store them in Streamlit's cache.
+    """
+    creds = st.session_state.get("creds")
+    items = []
+    if not creds or not creds.valid:
+        # If there are no (valid) credentials available, let the user log in.
+        st.warning("Please log in to your Google account.")
+        auth_url, _ = FLOW.authorization_url(prompt="consent")
+        # Open the authorization URL in the browser and wait for the user to authenticate
+        st.write("Please authenticate with Google:")
+        st.markdown(f"[Authenticate]({auth_url})")
+        auth_code = st.text_input("Enter the authorization code:")
+        if auth_code:
+            try:
+                token = FLOW.fetch_token(authorization_response=auth_code)
+                creds = Credentials.from_authorized_user_info(info=token)
+                st.session_state["creds"] = creds
+                st.success("Authorized succesfully!")
+                # creds = get_credentials()
+                # print(creds)
+
+
+            except Exception as e:
+                st.exception(e)
+                st.error("Failed to retrieve access token.")
+                raise Exception("Failed to retrieve access token.")
+
+
+    service = build("drive", "v3", credentials=creds)
+    st.success("Successfully connected to Google Drive!")
+
+    results = service.files().list(
+    fields="nextPageToken, files(id, name, mimeType)"
+    ).execute()
+    items = results.get("files", [])
+
+    return items
+    #return creds,items
+
+
+# def get_items():
+#     # Get the credentials
+
+#     # Create the Drive API client
+    
+#     try:
+        
+#         # List the files in the root directory
+
+
+#     except HttpError as e:
+#         st.error(f"An error occurred: {e}")
+#         raise st.ScriptRunner.StopException
+
+
+
+
+
+
+
+
 
 
 def main():
@@ -199,6 +279,8 @@ def main():
     if "username" in st.session_state:
         st.write(f"You are logged in as {st.session_state.username}.")
 
+        items_list = []
+
         # Google Drive OAuth button
         col1, col2 = st.columns([3, 1])
         with col1:
@@ -206,14 +288,33 @@ def main():
         with col2:
             if st.button("Connect"):
                 try:
-                    service = get_gdrive_service()
+                    items_list = get_credentials()
+                    return items_list
                     st.success("Successfully connected to Google Drive!")
+
                 except HttpError:
-                    st.error("Unable to connect to Google Drive.")
+                    st.error("Unable to connect to Google Drive.")  
+
+        i = items_list
+        if st.button("Show files"):
+            
+            # Display the file names
+            if not i:
+                st.warning("No files found.")
+            else:
+                st.write("Files in the root directory:")
+                for item in i:
+                    st.write(f"{item['name']} (ID: {item['id']})")
+
+
+
+
+        
+
 
             
         # File upload section
-        st.header("File Upload")
+        st.header("Upload a File to Drive")
 
         file_upload()
 
