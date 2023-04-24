@@ -8,6 +8,8 @@ from google_auth_oauthlib.flow import Flow
 from googleapiclient.discovery import build
 from google.oauth2.credentials import Credentials
 from googleapiclient.errors import HttpError
+from google_auth_oauthlib.flow import InstalledAppFlow
+
 
 
 # Connect to SQLite database
@@ -25,7 +27,7 @@ FLOW = Flow.from_client_secrets_file(
     redirect_uri="urn:ietf:wg:oauth:2.0:oob",
 )
 
-
+os.environ["OAUTHLIB_INSECURE_TRANSPORT"] = "1"
 
 def create_users_table():
     """
@@ -87,7 +89,7 @@ def login_user():
 
 
 
-@st.cache(allow_output_mutation=True)
+@st.cache_data(experimental_allow_widgets=True) #(allow_output_mutation=True, suppress_st_warning=True)
 def get_gdrive_service():
     """Fetches or builds and returns a Google Drive API service instance using a service account credentials file.
 
@@ -97,15 +99,21 @@ def get_gdrive_service():
     Raises:
         HttpError: If an error occurs while building the API service instance.
     """
-    credentials = Credentials.from_service_account_file('client_secret.json')
-    try:
-        service = build('drive', 'v3', credentials=credentials)
-        return service
-    except HttpError as error:
-        st.error(f"An error occurred: {error}")
+    #credentials = Credentials.from_service_account_file('client_secret.json')
+    # Load the user's credentials from the cache or request new ones
+    creds = st.session_state.get("creds")
+    if not creds or not creds.valid:
+        # If there are no (valid) credentials available, let the user log in.
+        flow = InstalledAppFlow.from_client_secrets_file('client_secret.json', SCOPES)
+        creds = flow.run_local_server(port=0)
+        st.session_state["creds"] = creds
+
+    # Build the Google Drive API service instance
+    service = build('drive', 'v3', credentials=creds)
+    return service
 
 
-@st.cache(allow_output_mutation=True)
+@st.cache_data #(allow_output_mutation=True)
 def upload_service():
     """Returns a Google Drive API service instance with write access to the user's Google Drive.
 
@@ -183,46 +191,57 @@ def get_search_history(user):
 
 
 
-st.cache(allow_output_mutation=True, suppress_st_warning=True)
+@st.cache_data(experimental_allow_widgets=True) #(allow_output_mutation=True, suppress_st_warning=True)
 def get_credentials():
     """
     Retrieve or generate credentials and store them in Streamlit's cache.
     """
     creds = st.session_state.get("creds")
-    items = []
     if not creds or not creds.valid:
         # If there are no (valid) credentials available, let the user log in.
         st.warning("Please log in to your Google account.")
         auth_url, _ = FLOW.authorization_url(prompt="consent")
         # Open the authorization URL in the browser and wait for the user to authenticate
         st.write("Please authenticate with Google:")
-        st.markdown(f"[Authenticate]({auth_url})")
-        auth_code = st.text_input("Enter the authorization code:")
-        if auth_code:
-            try:
+        st.markdown(f"[Get Authentication Code]({auth_url})")
+        if st.button("Authorize"):
+            auth_code = st.text_input("Enter the authorization code:")
+            if auth_code:
+                st.write("You entered: ", auth_code)
                 token = FLOW.fetch_token(authorization_response=auth_code)
                 creds = Credentials.from_authorized_user_info(info=token)
                 st.session_state["creds"] = creds
-                st.success("Authorized succesfully!")
-                # creds = get_credentials()
-                # print(creds)
+                st.success("Authorized successfully!")
+
+    service = get_gdrive_service()
+    return service
+    # service = build('drive', 'v3', credentials=creds)
+    # return service
+
+        # if auth_code:
+        #     try:
+        #         token = FLOW.fetch_token(authorization_response=auth_code)
+        #         creds = Credentials.from_authorized_user_info(info=token)
+        #         st.session_state["creds"] = creds
+        #         st.success("Authorized succesfully!")
+        #         # creds = get_credentials()
+        #         # print(creds)
 
 
-            except Exception as e:
-                st.exception(e)
-                st.error("Failed to retrieve access token.")
-                raise Exception("Failed to retrieve access token.")
+        #     except Exception as e:
+        #         st.exception(e)
+        #         st.error("Failed to retrieve access token.")
+        #         raise Exception("Failed to retrieve access token.")
 
 
-    service = build("drive", "v3", credentials=creds)
-    st.success("Successfully connected to Google Drive!")
+    # service = build("drive", "v3", credentials=creds)
+    # st.success("Successfully connected to Google Drive!")
 
-    results = service.files().list(
-    fields="nextPageToken, files(id, name, mimeType)"
-    ).execute()
-    items = results.get("files", [])
+    # results = service.files().list(
+    # fields="nextPageToken, files(id, name, mimeType)"
+    # ).execute()
+    # items = results.get("files", [])
 
-    return items
     #return creds,items
 
 
@@ -240,7 +259,25 @@ def get_credentials():
 #         st.error(f"An error occurred: {e}")
 #         raise st.ScriptRunner.StopException
 
+@st.cache_data(experimental_allow_widgets=True) #(allow_output_mutation=True, suppress_st_warning=True)
+def list_files_in_drive():
+    """
+    Lists the folders and files in the user's Google Drive and displays them on Streamlit.
+    """
+    st.header("Files in Google Drive")
+    service = get_credentials()
+    query = "mimeType='application/vnd.google-apps.folder' or mimeType!='application/vnd.google-apps.folder'"
+    results = service.files().list(q=query, fields="nextPageToken, files(id, name, mimeType)").execute()
+    items = results.get("files", [])
 
+    if not items:
+        st.write("No files or folders found in your Google Drive.")
+    else:
+        for item in items:
+            if item["mimeType"] == "application/vnd.google-apps.folder":
+                st.write(f"Folder: {item['name']}")
+            else:
+                st.write(f"File: {item['name']}")
 
 
 
@@ -279,32 +316,36 @@ def main():
     if "username" in st.session_state:
         st.write(f"You are logged in as {st.session_state.username}.")
 
-        items_list = []
+        #items_list = []
 
         # Google Drive OAuth button
-        col1, col2 = st.columns([3, 1])
-        with col1:
-            st.header("Connect to Google Drive")
-        with col2:
-            if st.button("Connect"):
-                try:
-                    items_list = get_credentials()
-                    return items_list
-                    st.success("Successfully connected to Google Drive!")
+        #col1, col2 = st.columns([3, 1])
+        #with col1:
+        st.header("Connect to Google Drive")
+        if st.button("Connect"):
+            list_files_in_drive()
 
-                except HttpError:
-                    st.error("Unable to connect to Google Drive.")  
+        # #with col2:
+        # if st.button("Connect and show files"):
+        #     try:
+        #             # items_list = get_credentials()
+        #             # return items_list
+        #         list_files_in_drive()
+        #             # if creds:
+        #             #     st.success("Successfully connected to Google Drive!")
 
-        i = items_list
-        if st.button("Show files"):
-            
+        #     except HttpError:
+        #             st.error("Unable to connect to Google Drive.")  
+
+        # i = items_list
+        #if st.button("Show files"):
             # Display the file names
-            if not i:
-                st.warning("No files found.")
-            else:
-                st.write("Files in the root directory:")
-                for item in i:
-                    st.write(f"{item['name']} (ID: {item['id']})")
+            # if not i:
+            #     st.warning("No files found.")
+            # else:
+            #     st.write("Files in the root directory:")
+            #     for item in i:
+            #         st.write(f"{item['name']} (ID: {item['id']})")
 
 
 
@@ -313,43 +354,43 @@ def main():
 
 
             
-        # File upload section
-        st.header("Upload a File to Drive")
+        # # File upload section
+        # st.header("Upload a File to Drive")
 
-        file_upload()
+        # file_upload()
 
-        # Query section title
-        st.header("Query Important Information")
+        # # Query section title
+        # st.header("Query Important Information")
 
-        # Text box for user input
-        query = st.text_input("Enter your query here")
-        user = st.session_state.username
+        # # Text box for user input
+        # query = st.text_input("Enter your query here")
+        # user = st.session_state.username
 
         
 
-        # Submit button
-        if st.button("Search"):
-            try:
-                log_queries(user,query)
+        # # Submit button
+        # if st.button("Search"):
+        #     try:
+        #         log_queries(user,query)
 
-                # TODO: implement search functionality using query and Google Drive API
+        #         # TODO: implement search functionality using query and Google Drive API
                 
-                results = []
-                st.write(results)
-            except HttpError:
-                st.error("Unable to retrieve search results.")
+        #         results = []
+        #         st.write(results)
+        #     except HttpError:
+        #         st.error("Unable to retrieve search results.")
 
         
-        # Access your query history
+        # # Access your query history
         
-        if st.button("Access Search history"):
-            st.header("Search history")
-            history = get_search_history(user)
-            if len(history) > 0:
-                history_df = pd.DataFrame(history)
-                st.table(history_df)
-            else:
-                st.write("No search history available.")
+        # if st.button("Access Search history"):
+        #     st.header("Search history")
+        #     history = get_search_history(user)
+        #     if len(history) > 0:
+        #         history_df = pd.DataFrame(history)
+        #         st.table(history_df)
+        #     else:
+        #         st.write("No search history available.")
                 
 
 
