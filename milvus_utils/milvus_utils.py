@@ -32,6 +32,7 @@ class MilvusUtils:
         response = requests.get(url, headers=self.headers, data=json.dumps(data))
         if response.status_code == 200:
             result = response.json()
+            print(result)
             if result['value']:
                 print(f"Collection {collection_name} exists!")
                 return True
@@ -63,7 +64,7 @@ class MilvusUtils:
             print("Error getting collection details:", response.json())
             return False
         
-    def get_collection_details(self,collection_name):
+    def drop_collection(self,collection_name):
         url = f"{self.endpoint_url}/api/v1/collection"
         data = {
             "collection_name": collection_name
@@ -158,3 +159,57 @@ class MilvusUtils:
             print('Status code:', response.status_code)
             print("error occured while searching:", response.json())
             return False
+
+milvus_utils  = MilvusUtils("http://54.160.87.79:9091")
+schema = {
+      "autoID": True,
+      "description": "drive document search",
+      "fields": [
+        {
+          "name": "chunk_id",
+          "description": "chunk id",
+          "is_primary_key": True,
+          "autoID": True,
+          "data_type": 5
+        },
+        {
+          "name": "doc_name",
+          "description": "name of the document",
+          "is_primary_key": False,
+          "data_type": 21
+        },
+        {
+          "name": "chunks",
+          "description": "chunks of words",
+          "is_primary_key": False,
+          "data_type": 21
+        },
+        {
+          "name": "chunk_vecs",
+          "description": "embedded vector of chunks",
+          "data_type": 101,
+          "is_primary_key": False,
+          "type_params": [
+            {
+              "key": "dim",
+              "value": "512"
+            }
+          ]
+        }
+      ],
+      "name": "drive_vdb"
+    }
+
+# print(milvus_utils.create_collection("drive_vdb",schema))
+# print(milvus_utils.get_collections_list())
+# print(milvus_utils.check_collection_existence("drive_vdb"))
+# url = "http://localhost:9091/api/v1/health"
+
+# response = requests.get(url)
+
+# if response.ok:
+#     data = response.json()
+#     print(data)
+# else:
+#     print("Error:", response.status_code)
+
