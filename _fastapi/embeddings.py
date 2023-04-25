@@ -1,11 +1,11 @@
 from typing import Dict, Any
-import spacy
+from sentence_transformers import SentenceTransformer
 import time
 
 
 def generate_embedding(chunks: list, file_name: str) -> Dict[str, Any]:
     """
-    Generates embeddings for a list of sentence chunks using the pre-trained spaCy model,
+    Generates embeddings for a list of sentence chunks using the all-mpnet-base-v2 model from SentenceTransformers,
     along with metadata in Pinecone format.
 
     Args:
@@ -16,14 +16,13 @@ def generate_embedding(chunks: list, file_name: str) -> Dict[str, Any]:
     - pinecone_dict (dict): A dictionary containing the embeddings and metadata in Pinecone format.
     """
 
-    # Load pre-trained spaCy model
-    nlp = spacy.load('en_core_web_md')
+    # Load all-mpnet-base-v2 model
+    model = SentenceTransformer('all-mpnet-base-v2')
 
     # Generate embeddings for each chunk
     vectors = []
     for i, chunk in enumerate(chunks):
-        # Get the vector representation for the chunk
-        embedding = nlp(chunk).vector
+        embedding = model.encode(chunk, show_progress_bar=True)
 
         # Create metadata dictionary
         metadata = {'chunk': chunks[i], 'file_name': file_name}
@@ -36,5 +35,5 @@ def generate_embedding(chunks: list, file_name: str) -> Dict[str, Any]:
 
     # Combine vectors into Pinecone format dictionary
     pinecone_dict = {'vectors': vectors}
-    print(len(pinecone_dict["vectors"][0]["values"]))
+    print(type(pinecone_dict["vectors"][0]["values"]))
     return pinecone_dict
