@@ -3,6 +3,7 @@ import pinecone
 import openai 
 from decouple import config
 
+
 class PineconeUtils:
     def __init__(self, api_key, environment):
         self.api_key = api_key
