@@ -123,4 +123,16 @@ class PineconeUtils:
         upsert_response = index.upsert(vectors=vectors)
         return upsert_response
     
+    def search_index(self, index_name,topk, vector, meta_filter=None):
+        pinecone.init(api_key=self.api_key, environment=self.environment)
+        index = pinecone.Index(index_name)
+        query_response = index.query(
+            top_k=topk,
+            include_values=False,
+            include_metadata=True,
+            vector=vector,
+            filter= meta_filter
+        )
+        return query_response
+
 

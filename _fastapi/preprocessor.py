@@ -21,7 +21,6 @@ def preprocess_and_chunk(text):
 
     # Remove stop words, punctuation marks, and lemmatize the text
     tokens = [token.lemma_.lower() for token in doc if not token.is_stop and not token.is_punct]
-    print(tokens)
 
     # Convert tokens list to sentence
     sentence = nlp(' '.join(tokens))
@@ -37,3 +36,7 @@ def preprocess_and_chunk(text):
             chunks.append(token.text)
 
     return chunks
+
+
+print(preprocess_and_chunk("Chunk the text into meaningful phrases using NER, dependency parsing, and noun chunking"))
+

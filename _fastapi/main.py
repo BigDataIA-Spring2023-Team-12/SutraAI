@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from pydantic import BaseModel
 from embeddings import generate_embedding
 from preprocessor import preprocess_and_chunk
-from vector_search_engine.pinecone_utils import PineconeUtils
+from pinecone_utils import PineconeUtils
 from decouple import config
 
 
