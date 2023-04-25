@@ -37,3 +37,6 @@ def generate_embedding(chunks: list, file_name: str) -> Dict[str, Any]:
     pinecone_dict = {'vectors': vectors}
 
     return pinecone_dict
+
+
+# print(generate_embedding("it is a good day", "app.txt"))
