@@ -1,6 +1,6 @@
 import sqlite3
 import hashlib
-import streamlit as st
+import _streamlit as st
 from google.oauth2 import service_account
 import pandas as pd
 import os

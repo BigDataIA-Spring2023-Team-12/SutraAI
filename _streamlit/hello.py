@@ -1,6 +1,6 @@
 import sqlite3
 import hashlib
-import streamlit as st
+import _streamlit as st
 from google.oauth2 import service_account
 import pandas as pd
 import requests
@@ -11,7 +11,6 @@ from google.oauth2.credentials import Credentials
 from googleapiclient.errors import HttpError
 from google_auth_oauthlib.flow import InstalledAppFlow
 import io
-import base64
 from PIL import Image
 
 # Connect to SQLite database
@@ -190,34 +189,6 @@ def get_search_history(user):
 
 
 
-@st.cache_data(experimental_allow_widgets=True)
-def display_files_in_drive_storage():
-    """
-    Shows the folders and files in the user's Google Drive and allows the user to open the file in Streamlit.
-    """
-    service = get_credentials()
-    credentials = st.session_state.get("creds")
-
-    st.header("Files in Google Drive")
-    service = build("drive", "v3", credentials)
-    query = "mimeType!='application/vnd.google-apps.folder'"
-    results = service.files().list(q=query, fields="nextPageToken, files(id, name, mimeType)").execute()
-    items = results.get("files", [])
-
-    if not items:
-        st.write("No files found in your Google Drive.")
-    else:
-        for item in items:
-            st.write(f"File: {item['name']}")
-            if st.button(f"Open {item['name']}"):
-                try:
-                    request = service.files().get_media(fileId=item["id"])
-                    content = request.execute()
-                    st.write(f"Showing {item['name']}:")
-                    st.image(content, caption=item['name'], use_column_width=True)
-                except HttpError as error:
-                    st.write(f"An error occurred: {error}")
-
 
 @st.cache_data(experimental_allow_widgets=True) 
 def get_credentials():
@@ -239,8 +210,11 @@ def get_credentials():
                 st.write("You entered: ", auth_code)
                 token = FLOW.fetch_token(authorization_response=auth_code)
                 creds = Credentials.from_authorized_user_info(info=token)
-                st.session_state["creds"] = creds
-                st.success("Authorized successfully!")
+                # st.session_state["creds"] = creds
+                # st.success("Authorized successfully!")
+
+        st.session_state["creds"] = creds
+        st.success("Authorized successfully!")
 
     service = get_gdrive_service()
     return service
@@ -269,35 +243,6 @@ def list_files_in_drive():
                 st.write(f"File: {item['name']}")
 
 
-@st.cache_data(experimental_allow_widgets=True)
-def show_files_in_drive():
-    """
-    Shows the folders and files in the user's Google Drive and allows the user to open the file in Streamlit.
-    """
-    st.header("Files in Google Drive")
-    service = get_credentials()
-    query = "mimeType='application/vnd.google-apps.folder' or mimeType!='application/vnd.google-apps.folder'"
-    results = service.files().list(q=query, fields="nextPageToken, files(id, name, mimeType)").execute()
-    items = results.get("files", [])
-
-    if not items:
-        st.write("No files or folders found in your Google Drive.")
-    else:
-        for item in items:
-            if item["mimeType"] == "application/vnd.google-apps.folder":
-                st.write(f"Folder: {item['name']}")
-            else:
-                st.write(f"File: {item['name']}")
-                if st.button(f"Open {item['name']}",key=item['id']):
-                    file_id = item["id"]
-                    download_url = f"https://drive.google.com/uc?id={file_id}"
-                    with st.spinner(f"Downloading {item['name']}..."):
-                        content = requests.get(download_url).content
-                    st.write("Download finished!")
-                    st.write(f"Showing {item['name']}:")
-                    st.image(content, caption=item['name'], use_column_width=True)
-
-
 
 @st.cache_data(experimental_allow_widgets=True)
 def display_files_in_drive():
@@ -318,7 +263,7 @@ def display_files_in_drive():
                 st.write(f"Folder: {item['name']}")
             else:
                 st.write(f"File: {item['name']}")
-                if st.button(f"Open {item['name']}"):
+                if st.button(f"Open {item['name']}",key=f"button_{item['id']}"):
                     file_id = item["id"]
                     download_url = f"https://drive.google.com/uc?id={file_id}"
                     with st.spinner(f"Downloading {item['name']}..."):
@@ -331,117 +276,6 @@ def display_files_in_drive():
 
 
 
-@st.cache_data(experimental_allow_widgets=True)
-def only_display_files_in_drive():
-    """
-    Shows the folders and files in the user's Google Drive and allows the user to open the file in Streamlit.
-    """
-    st.header("Files in Google Drive")
-    service = get_credentials()
-    query = "mimeType='application/vnd.google-apps.folder' or mimeType!='application/vnd.google-apps.folder'"
-    results = service.files().list(q=query, fields="nextPageToken, files(id, name, mimeType)").execute()
-    items = results.get("files", [])
-
-    if not items:
-        st.write("No files found in your Google Drive.")
-    else:
-        for item in items:
-            st.write(f"File: {item['name']}")
-            if st.button(f"Open {item['name']}",key=item['id']):
-                try:
-                    request = service.files().get_media(fileId=item["id"])
-                    content = request.execute()
-                    st.write(f"Showing {item['name']}:")
-                    st.image(content, caption=item['name'], use_column_width=True)
-                except HttpError as error:
-                    st.write(f"An error occurred: {error}")
-
-
-
-# displaying files 
-@st.cache_data(experimental_allow_widgets=True)
-def files_kidhar_he():
-    """
-    Shows the folders and files in the user's Google Drive and allows the user to open the file in Streamlit.
-    """
-    st.header("Files in Google Drive")
-    service = get_credentials()
-    query = "mimeType='application/vnd.google-apps.folder' or mimeType!='application/vnd.google-apps.folder'"
-    results = service.files().list(q=query, fields="nextPageToken, files(id, name, mimeType)").execute()
-    items = results.get("files", [])
-
-    if not items:
-        st.write("No files or folders found in your Google Drive.")
-    else:
-        for item in items:
-            if item["mimeType"] == "application/vnd.google-apps.folder":
-                st.write(f"Folder: {item['name']}")
-            else:
-                st.write(f"File: {item['name']}")
-                if st.button(f"Open {item['name']}",key=item['id']):
-                    file_id = item["id"]
-                    export_url = f"https://drive.google.com/uc?export=download&id={file_id}"
-                    with st.spinner(f"Downloading {item['name']}..."):
-                        content = requests.get(export_url).content
-                    st.write("Download finished!")
-                    st.write(f"Showing {item['name']}:")
-                    img_buffer = io.BytesIO(content)
-                    image = Image.open(img_buffer)
-                    st.image(image, caption=item['name'], use_column_width=True)
-
-
-
-
-
-@st.cache_data(experimental_allow_widgets=True)
-def finally_get_files():
-    """
-    Shows the folders and files in the user's Google Drive and allows the user to open the file in Streamlit.
-    """
-    st.header("Files in Google Drive")
-    service = get_credentials()
-    query = "mimeType='application/vnd.google-apps.folder' or mimeType!='application/vnd.google-apps.folder'"
-    results = service.files().list(q=query, fields="nextPageToken, files(id, name, mimeType)").execute()
-    items = results.get("files", [])
-
-    if not items:
-        st.write("No files or folders found in your Google Drive.")
-    else:
-        for item in items:
-            if item["mimeType"] == "application/vnd.google-apps.folder":
-                st.write(f"Folder: {item['name']}")
-            else:
-                st.write(f"File: {item['name']}")
-                if st.button(f"Open {item['name']}"):
-                    file_id = item["id"]
-                    export_mime_type = item['mimeType']
-                    if item['mimeType'].startswith('application/vnd.google-apps'):
-                        export_mime_type = 'application/pdf'  # export to PDF for Google Docs formats
-                        
-                    export_url = f"https://drive.google.com/u/0/uc?id={file_id}&export=download"
-                    with st.spinner(f"Downloading {item['name']}..."):
-                        content = requests.get(export_url).content
-                    st.write("Download finished!")
-                    st.write(f"Showing {item['name']}:")
-
-                    if export_mime_type.startswith('image'):
-                        img_buffer = io.BytesIO(content)
-                        image = Image.open(img_buffer)
-                        st.image(image, caption=item['name'], use_column_width=True)
-                    elif export_mime_type.startswith('text'):
-                        st.text(content.decode('utf-8'))
-                    elif export_mime_type == 'application/pdf':
-                        st.write(f"Downloaded file type: {export_mime_type}")
-                        st.write(f"File size: {len(content)} bytes")
-                        st.write("Sorry, PDF display is not currently supported. Please download the file to view.")
-                    else:
-                        st.write(f"Downloaded file type: {export_mime_type}")
-                        st.write(f"File size: {len(content)} bytes")
-                        st.write("Sorry, this file type is not currently supported. Please download the file to view.")
-
-
-
-
 
 # MAIN FUNCTION
 
@@ -450,6 +284,16 @@ def main():
     Main function that runs the application.
     """
 
+        
+    md_text = '''
+    # 🚀 SutraAI: Building a Smart Query Tool for Querying Multiple Documents 📚
+
+    # 👋 
+    In today's world, there is a lot of textual data present in various formats, and accessing the required information from this data can be a challenging task. The proposed project aims to build a 🔍 smart query tool that can query multiple documents and retrieve the relevant information based on user input queries.
+
+    '''
+
+    
     # Set page title and layout
     st.set_page_config(page_title="SutraAI", layout="wide")
     st.write("<h1 style='text-align: center;'>SutraAI</h1>", unsafe_allow_html=True)
@@ -462,7 +306,10 @@ def main():
 
     
     if menu_selection == "Home":
-        st.write("Welcome to SutraAI!")
+        st.header("Welcome to SutraAI!")
+        st.markdown(md_text)
+        st.image("img.png")
+
 
     elif menu_selection == "User Registration":
         register_user()
@@ -477,26 +324,53 @@ def main():
 
         st.header("Connect to Google Drive")
 
+        if st.button("Connect and Display Files"):
+            display_files_in_drive()
 
-        # # Create two buttons with identical structure
-        # button1 = st.button("Connect and Display Files")
-        # button2 = st.button("Files in Drive")
-
-        # Add unique key arguments to each button
-        #button1 = st.button("Connect and Display Files", key="button1")
-        
-
-        # if st.button("Connect and Display Files"):
-        #     list_files_in_drive()
-
-        # if button1:
-        #     list_files_in_drive()
 
         st.markdown("---")
-        st.header("Display Files in Drive")
-        # button2 = st.button("Files in Drive", key="button2")
-        # if button2:
-        finally_get_files()
+  
+        st.header("Query Important Information")
+
+        # Text box for user input
+        query = st.text_input("Enter your query here")
+        user = st.session_state.username
+
+        
+
+        # Submit button
+        if st.button("Search"):
+            try:
+                log_queries(user,query)
+
+                # TODO: implement search functionality using query and Google Drive API
+                
+                results = []
+                st.write(results)
+            except HttpError:
+                st.error("Unable to retrieve search results.")
+
+        
+        # Access your query history
+        
+        if st.button("Access Search history"):
+            st.header("Search history")
+            history = get_search_history(user)
+            if len(history) > 0:
+                history_df = pd.DataFrame(history)
+                st.table(history_df)
+            else:
+                st.write("No search history available.")
+                
+
+        st.markdown("---")
+
+        # File upload section
+        st.header("Upload a File to Drive")
+
+        file_upload()
+
+        
 
     else:
         st.warning("Please log in to access Google Drive and search functionality.")
