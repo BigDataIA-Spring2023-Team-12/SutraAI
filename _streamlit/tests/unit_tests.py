@@ -5,7 +5,7 @@ import unittest
 from unittest.mock import patch, Mock, MagicMock
 import streamlit as st
 
-from streamlit.utils import create_users_table,register_user,get_credentials,list_files_in_drive,login_user,log_queries,get_search_history,display_files_in_drive
+from _streamlit.utils import create_users_table,register_user,get_credentials,list_files_in_drive,login_user,log_queries,get_search_history,display_files_in_drive
 
 
 class TestFunctions(unittest.TestCase):
