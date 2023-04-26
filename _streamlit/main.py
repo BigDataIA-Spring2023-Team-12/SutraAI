@@ -1,17 +1,10 @@
 import streamlit as st
-from google.oauth2 import service_account
-import pandas as pd
-import os    
-from google_auth_oauthlib.flow import Flow
-from googleapiclient.discovery import build
-from google.oauth2.credentials import Credentials
+import os
 from googleapiclient.errors import HttpError
-from google_auth_oauthlib.flow import InstalledAppFlow
-import io
-from PIL import Image
-from utils import create_users_table,register_user,login_user,log_queries,display_files_in_drive,get_credentials,get_gdrive_service,get_search_history,file_upload,list_files_in_drive,upload_file_to_google_drive, get_file_data, process_file
+from _utils import display_files_in_drive, process_file
 
 os.environ["OAUTHLIB_INSECURE_TRANSPORT"] = "1"
+
 
 # MAIN FUNCTION
 
@@ -20,7 +13,6 @@ def main():
     Main function that runs the application.
     """
 
-        
     md_text = '''
     # 🚀 SutraAI: Building a Smart Query Tool for Querying Multiple Documents 📚
 
@@ -29,7 +21,6 @@ def main():
 
     '''
 
-    
     # Set page title and layout
     st.set_page_config(page_title="SutraAI", layout="wide")
     st.write("<h1 style='text-align: center;'>SutraAI</h1>", unsafe_allow_html=True)
@@ -38,8 +29,8 @@ def main():
 
     # create_users_table()
 
-    menu_selection = st.sidebar.selectbox("Select an option", ["Home","Access Drive"]) 
-    
+    menu_selection = st.sidebar.selectbox("Select an option", ["Home", "Access Drive"])
+
     if menu_selection == "Home":
         st.header("Welcome to SutraAI!")
         st.markdown(md_text)
@@ -54,7 +45,7 @@ def main():
 
         # elif st.button("Display Content"):
         #     process_file()
-        selection = st.selectbox("Select an action", ["Select an option","Display Files", "Display Content"])
+        selection = st.selectbox("Select an action", ["Select an option", "Display Files", "Display Content"])
 
         if selection == "Display Files":
             display_files_in_drive()
@@ -62,34 +53,31 @@ def main():
         elif selection == "Display Content":
             process_file()
 
-
-
         st.markdown("---")
 
         st.header("Query Important Information")
 
         # Text box for user input
         query = st.text_input("Enter your query here")
-           
 
         # Submit button
         if st.button("Search"):
             try:
-                #log_queries(user,query)
+                # log_queries(user,query)
 
                 # TODO: implement search functionality using query and Google Drive API
-                
+
                 results = []
                 st.write(results)
             except HttpError:
                 st.error("Unable to retrieve search results.")
-                    
 
         st.markdown("---")
-       
+
 
     else:
         st.warning("Please log in to access Google Drive and search functionality.")
+
 
 if __name__ == "__main__":
     main()

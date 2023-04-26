@@ -1,16 +1,18 @@
 import sqlite3
 import hashlib
-import _streamlit as st
+import streamlit as st
 from google.oauth2 import service_account
 import pandas as pd
 import requests
-import os    
 from google_auth_oauthlib.flow import Flow
 from googleapiclient.discovery import build
 from google.oauth2.credentials import Credentials
 from googleapiclient.errors import HttpError
 from google_auth_oauthlib.flow import InstalledAppFlow
 import io
+import textract
+import PyPDF2
+from io import BytesIO
 from PIL import Image
 
 # Connect to SQLite database
@@ -25,7 +27,6 @@ FLOW = Flow.from_client_secrets_file(
     redirect_uri="urn:ietf:wg:oauth:2.0:oob",
 )
 
-os.environ["OAUTHLIB_INSECURE_TRANSPORT"] = "1"
 
 def create_users_table():
     """
@@ -45,6 +46,7 @@ def create_users_table():
                 )""")
     conn.commit()
 
+
 def register_user():
     """
     Registers a new user by inserting their username and hashed password
@@ -63,6 +65,7 @@ def register_user():
             c.execute("INSERT INTO users (username, password_hash) VALUES (?, ?)", (new_username, password_hash))
             conn.commit()
             st.sidebar.success("User created successfully.")
+
 
 def login_user():
     """
@@ -86,8 +89,7 @@ def login_user():
             st.sidebar.error("Username not found.")
 
 
-
-@st.cache_data(experimental_allow_widgets=True) 
+@st.cache_data(experimental_allow_widgets=True)
 def get_gdrive_service():
     """Fetches or builds and returns a Google Drive API service instance using a service account credentials file.
 
@@ -97,7 +99,7 @@ def get_gdrive_service():
     Raises:
         HttpError: If an error occurs while building the API service instance.
     """
-    
+
     creds = st.session_state.get("creds")
     if not creds or not creds.valid:
         # If there are no (valid) credentials available, let the user log in.
@@ -110,7 +112,7 @@ def get_gdrive_service():
     return service
 
 
-@st.cache_data #(allow_output_mutation=True)
+@st.cache_data  # (allow_output_mutation=True)
 def upload_service():
     """Returns a Google Drive API service instance with write access to the user's Google Drive.
 
@@ -128,14 +130,12 @@ def upload_service():
 
     scope = ["https://www.googleapis.com/auth/drive"]
     credentials = service_account.Credentials.from_service_account_info(info=creds, scopes=scope)
-    
+
     try:
         service = build("drive", "v3", credentials=credentials)
         return service
     except Exception as e:
         st.error(f"Unable to build the Google Drive API service: {e}")
-
-
 
 
 def upload_file_to_google_drive(file):
@@ -162,6 +162,7 @@ def upload_file_to_google_drive(file):
         st.error(f"An error occurred while uploading file to Google Drive: {error}")
         raise
 
+
 def file_upload():
     """Runs a Streamlit app for uploading a file to Google Drive.
 
@@ -174,12 +175,10 @@ def file_upload():
         st.success(f"File '{file.name}' uploaded successfully with file ID {file_id}.")
 
 
-
-
-
-def log_queries(user,query):
-    c.execute("INSERT INTO history (username, queries) VALUES (?,?)", (user,query))
+def log_queries(user, query):
+    c.execute("INSERT INTO history (username, queries) VALUES (?,?)", (user, query))
     conn.commit()
+
 
 def get_search_history(user):
     c.execute("SELECT queries FROM history WHERE username=?", (user,))
@@ -187,10 +186,7 @@ def get_search_history(user):
     return results
 
 
-
-
-
-@st.cache_data(experimental_allow_widgets=True) 
+@st.cache_data(experimental_allow_widgets=True)
 def get_credentials():
     """
     Retrieve or generate credentials and store them in Streamlit's cache.
@@ -198,13 +194,13 @@ def get_credentials():
     creds = st.session_state.get("creds")
     if not creds or not creds.valid:
         # If there are no (valid) credentials available, let the user log in.
-        #st.warning("Please log in to your Google account.")
+        # st.warning("Please log in to your Google account.")
         auth_url, _ = FLOW.authorization_url(prompt="consent")
         # Open the authorization URL in the browser and wait for the user to authenticate
         st.write("Trouble Authentiating?")
         if st.button("Authorize with Code"):
             st.markdown(f"[Get Authentication Code]({auth_url})")
-        
+
             auth_code = st.text_input("Enter the authorization code:")
             if auth_code:
                 st.write("You entered: ", auth_code)
@@ -220,14 +216,14 @@ def get_credentials():
     return service
 
 
-@st.cache_data(experimental_allow_widgets=True) 
+@st.cache_data(experimental_allow_widgets=True)
 def list_files_in_drive():
     """
     Lists the folders and files in the user's Google Drive and displays them on Streamlit.
     """
-    
+
     service = get_credentials()
-    
+
     query = "mimeType='application/vnd.google-apps.folder' or mimeType!='application/vnd.google-apps.folder'"
     results = service.files().list(q=query, fields="nextPageToken, files(id, name, mimeType)").execute()
     items = results.get("files", [])
@@ -241,7 +237,6 @@ def list_files_in_drive():
                 st.write(f"Folder: {item['name']}")
             else:
                 st.write(f"File: {item['name']}")
-
 
 
 @st.cache_data(experimental_allow_widgets=True)
@@ -251,7 +246,9 @@ def display_files_in_drive():
     """
     st.header("Files in Google Drive")
     service = get_credentials()
-    query = "mimeType='application/vnd.google-apps.folder' or mimeType!='application/vnd.google-apps.folder'"
+    # query = "mimeType='application/vnd.google-apps.folder' or mimeType!='application/vnd.google-apps.folder'"
+    query = "trashed = false and mimeType!='application/vnd.google-apps.folder'"
+
     results = service.files().list(q=query, fields="nextPageToken, files(id, name, mimeType)").execute()
     items = results.get("files", [])
 
@@ -263,7 +260,7 @@ def display_files_in_drive():
                 st.write(f"Folder: {item['name']}")
             else:
                 st.write(f"File: {item['name']}")
-                if st.button(f"Open {item['name']}",key=f"button_{item['id']}"):
+                if st.button(f"Open {item['name']}", key=f"button_{item['id']}"):
                     file_id = item["id"]
                     download_url = f"https://drive.google.com/uc?id={file_id}"
                     with st.spinner(f"Downloading {item['name']}..."):
@@ -275,105 +272,136 @@ def display_files_in_drive():
                     st.image(image, caption=item['name'], use_column_width=True)
 
 
-
-
-# MAIN FUNCTION
-
-def main():
+@st.cache_data
+def get_file_data(file_id):
     """
-    Main function that runs the application.
+    Downloads a file from Google Drive and returns its contents as bytes.
     """
+    drive_service = get_gdrive_service()
+    file = drive_service.files().get(fileId=file_id, fields="id, name, mimeType, size").execute()
 
-        
-    md_text = '''
-    # 🚀 SutraAI: Building a Smart Query Tool for Querying Multiple Documents 📚
+    if "application/pdf" in file["mimeType"]:
+        # For PDF files, read the raw bytes of the file
+        file_bytes = drive_service.files().get_media(fileId=file_id).execute()
+        return file["name"], file_bytes
 
-    # 👋 
-    In today's world, there is a lot of textual data present in various formats, and accessing the required information from this data can be a challenging task. The proposed project aims to build a 🔍 smart query tool that can query multiple documents and retrieve the relevant information based on user input queries.
-
-    '''
-
-    
-    # Set page title and layout
-    st.set_page_config(page_title="SutraAI", layout="wide")
-    st.write("<h1 style='text-align: center;'>SutraAI</h1>", unsafe_allow_html=True)
-
-    st.markdown("---")
-
-    create_users_table()
-
-    menu_selection = st.sidebar.selectbox("Select an option", ["Home","User Registration", "User Login"])
-
-    
-    if menu_selection == "Home":
-        st.header("Welcome to SutraAI!")
-        st.markdown(md_text)
-        st.image("img.png")
-
-
-    elif menu_selection == "User Registration":
-        register_user()
-    elif menu_selection == "User Login":
-        login_user()
-
-
-    
-    # Check if user is logged in
-    if "username" in st.session_state:
-        st.write(f"You are logged in as {st.session_state.username}.")
-
-        st.header("Connect to Google Drive")
-
-        if st.button("Connect and Display Files"):
-            display_files_in_drive()
-
-
-        st.markdown("---")
-  
-        st.header("Query Important Information")
-
-        # Text box for user input
-        query = st.text_input("Enter your query here")
-        user = st.session_state.username
-
-        
-
-        # Submit button
-        if st.button("Search"):
-            try:
-                log_queries(user,query)
-
-                # TODO: implement search functionality using query and Google Drive API
-                
-                results = []
-                st.write(results)
-            except HttpError:
-                st.error("Unable to retrieve search results.")
-
-        
-        # Access your query history
-        
-        if st.button("Access Search history"):
-            st.header("Search history")
-            history = get_search_history(user)
-            if len(history) > 0:
-                history_df = pd.DataFrame(history)
-                st.table(history_df)
-            else:
-                st.write("No search history available.")
-                
-
-        st.markdown("---")
-
-        # File upload section
-        st.header("Upload a File to Drive")
-
-        file_upload()
-
-        
+    elif "application/vnd.google-apps.document" in file["mimeType"]:
+        # For Google Docs files, export to plain text format and read the text
+        export_mimetype = "text/plain"
+        file_bytes = drive_service.files().export(fileId=file_id, mimeType=export_mimetype).execute()
+        return file["name"], file_bytes.encode("utf-8")
 
     else:
-        st.warning("Please log in to access Google Drive and search functionality.")
+        st.warning(f"Unsupported file type: {file['mimeType']}")
+        return None
+    # """
+    # Downloads the content of a file from Google Drive given its ID.
+    # Returns the file name and data.
+    # """
+    # drive_service = get_gdrive_service()
+    # file = drive_service.files().get(fileId=file_id).execute()
+    # file_name = file['name']
+    # export_mime_types = {
+    #     'application/vnd.google-apps.document': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    #     'application/vnd.google-apps.spreadsheet': 'text/csv'
+    # }
+    # if file['mimeType'] in export_mime_types:
+    #     export_type = export_mime_types[file['mimeType']]
+    #     export_url = f'https://www.googleapis.com/drive/v3/files/{file_id}/export?mimeType={export_type}'
+    #     response = drive_service.files().export(fileId=file_id, mimeType=export_type).execute()
+    #     file_data = response.encode('utf-8')
+    # elif file['mimeType'] == 'application/pdf':
+    #     file_data = drive_service.files().get_media(fileId=file_id).execute()
+    # else:
+    #     file_data = None
+    # return file_name, file_data
 
-if __name__ == "__main__":
-    main()
+
+# def process_file():
+#     """
+#     Allows the user to select a file from their Google Drive account and downloads it as plain text.
+#     """
+#     drive_service = get_gdrive_service()
+
+#     # Get a list of the user's files from Google Drive
+#     results = drive_service.files().list(
+#         pageSize=1000,
+#         fields="nextPageToken, files(id, name, mimeType)"
+#     ).execute()
+#     files = results.get("files", [])
+
+#     with st.form(key="select a file"):    
+#         # Create a select box that allows the user to choose a file
+#         selected_file = st.selectbox("Select a file", files, format_func=lambda file: file["name"])
+#         submit_button = st.form_submit_button("Process")
+
+
+#     if selected_file and submit_button:
+#         # # Download the selected file as plain text
+#         # file_id = selected_file["id"]
+#         # file_name, file_data = get_file_data(file_id)
+#         # if file_data:
+#         #     # Encode the file data as plain text
+#         #     file_text = file_data.decode("utf-8")
+#         # Encode the file data as plain text
+
+#         # Download the selected file as plain text
+#         file_id = selected_file["id"]
+#         file_name, file_data = get_file_data(file_id)
+#         if file_data:
+#             if file_name.endswith(('.docx', '.txt', '.pdf', '.csv')):
+#                 file_text = file_data.decode("utf-8")
+#             else:
+#                 file_text = textract.process(BytesIO(file_data)).decode("utf-8")
+
+#             # Download the plain text file
+#             b64_data = base64.b64encode(file_text.encode("utf-8")).decode("utf-8")
+#             href = f'<a href="data:text/plain;base64,{b64_data}" download="{file_name}">Download plain text file</a>'
+#             st.markdown(href, unsafe_allow_html=True)
+#         else:
+#             st.warning("Could not retrieve file data.")
+
+
+def process_file():
+    """
+    Allows the user to select a file from their Google Drive account and displays it as a preview.
+    """
+    drive_service = get_gdrive_service()
+
+    # Get a list of the user's files from Google Drive
+    results = drive_service.files().list(
+        pageSize=1000,
+        fields="nextPageToken, files(id, name, mimeType)"
+    ).execute()
+    files = results.get("files", [])
+
+    with st.form(key="select a file"):
+        # Create a select box that allows the user to choose a file
+        selected_file = st.selectbox("Select a file", files, format_func=lambda file: file["name"])
+        submit_button = st.form_submit_button("Process")
+
+    if selected_file and submit_button:
+        # Download the selected file and display it as a preview
+        file_id = selected_file["id"]
+        file_name, file_data = get_file_data(file_id)
+        if file_data:
+            if file_name.endswith(('.docx', '.txt', '.pdf', '.csv')):
+                if file_name.endswith('.csv'):
+                    df = pd.read_csv(BytesIO(file_data))
+                    st.write(df)
+                elif file_name.endswith('.pdf'):
+                    pdf_reader = PyPDF2.PdfFileReader(BytesIO(file_data))
+                    pages = pdf_reader.getNumPages()
+                    for i in range(pages):
+                        page = pdf_reader.getPage(i)
+                        st.write(page.extractText())
+                else:
+                    st.write(file_data.decode("utf-8"))
+            else:
+                try:
+                    file_text = textract.process(BytesIO(file_data)).decode("utf-8")
+                    st.write(file_text)
+                except:
+                    st.warning("Could not display file preview.")
+        else:
+            st.warning("Could not retrieve file data.")
