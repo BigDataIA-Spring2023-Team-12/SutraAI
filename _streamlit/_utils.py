@@ -10,6 +10,8 @@ import textract
 import PyPDF2
 from io import BytesIO
 from PIL import Image
+import sqlite3
+from datetime import datetime
 
 
 # Set up the OAuth flow
@@ -208,3 +210,41 @@ def process_file():
                     st.warning("Could not display file preview.")
         else:
             st.warning("Could not retrieve file data.")
+
+
+
+def update_latest_refresh():
+    """
+    Creates or updates a SQLite database named 'latest_refresh.db' with one table named 'refresh_timestamp',
+    which stores a single row containing the timestamp of the most recent click on the 'refresh' button in
+    a Streamlit application.
+
+    If the 'refresh_timestamp' table does not exist, it is created. If the table already exists, the single
+    row it contains is updated with the current timestamp.
+
+    Args:
+        None
+
+    Returns:
+        None
+    """
+    # Create connection to database
+    conn = sqlite3.connect('latest_refresh.db')
+    cursor = conn.cursor()
+
+    # Create table if it does not exist
+    cursor.execute('CREATE TABLE IF NOT EXISTS refresh_timestamp (timestamp TEXT)')
+
+    # Update or insert row with current timestamp
+    timestamp = str(datetime.now())
+    cursor.execute('SELECT COUNT(*) FROM refresh_timestamp')
+    row_count = cursor.fetchone()[0]
+    if row_count == 0:
+        cursor.execute('INSERT INTO refresh_timestamp (timestamp) VALUES (?)', (timestamp,))
+    else:
+        cursor.execute('UPDATE refresh_timestamp SET timestamp=?', (timestamp,))
+    conn.commit()
+
+    # Close connection
+    cursor.close()
+    conn.close()
