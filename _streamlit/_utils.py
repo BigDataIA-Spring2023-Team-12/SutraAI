@@ -253,3 +253,32 @@ def update_latest_refresh():
     # Close connection
     cursor.close()
     conn.close()
+
+
+
+def get_file_id():
+    drive_service = get_gdrive_service()
+
+    # Get a list of the user's files from Google Drive
+    results = drive_service.files().list(
+        pageSize=1000,
+        fields="nextPageToken, files(id, name, mimeType)"
+    ).execute()
+    files = results.get("files", [])
+    file_id = 1
+    # file_id = 1
+    with st.form(key="select a file"):
+        # Create a select box that allows the user to choose a file
+        selected_file = st.selectbox("Select a file", files, format_func=lambda file: file["name"])
+        submit_button = st.form_submit_button("Extract")
+        if selected_file and submit_button:
+            # Download the selected file and display it as a preview
+            file_id = selected_file["id"]
+            # st.write(file_id)
+        
+    # st.write("File ID:", file_id)
+    return file_id
+    
+
+
+
