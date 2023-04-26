@@ -37,13 +37,12 @@ def generate_embedding(chunks: list, file_name: str) -> Dict[str, Any]:
 
     # Combine vectors into Pinecone format dictionary
     pinecone_dict = {'vectors': vectors}
-
+    print(type(pinecone_dict["vectors"][0]["values"]))
     return pinecone_dict
 
+def mpnet_embeddings(text):
+        model = SentenceTransformer('all-mpnet-base-v2')
 
-vectors = generate_embedding("dependency parsing, and noun chunking", "app.txt")
-pinecone_utils = PineconeUtils(config("PINECONE_API_KEY"),config("PINECONE_ENV"))
-# upsert_res = pinecone_utils.upsert_vectors(vectors["vectors"],"sutra-ai")
-# print(upsert_res)
-search = pinecone_utils.search_index("sutra-ai",2,vectors["vectors"][0]["values"])
-print(search)
+        embedding = model.encode(text,show_progress_bar=True)
+
+        return embedding

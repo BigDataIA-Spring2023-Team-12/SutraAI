@@ -134,3 +134,12 @@ class PineconeUtils:
             filter= meta_filter
         )
         return query_response
+
+
+
+# vectors = generate_embedding("dependency parsing, and noun chunking", "app.txt")
+# pinecone_utils = PineconeUtils(config("PINECONE_API_KEY"),config("PINECONE_ENV"))
+# # upsert_res = pinecone_utils.upsert_vectors(vectors["vectors"],"sutra-ai")
+# # print(upsert_res)
+# search = pinecone_utils.search_index("sutra-ai",2,vectors["vectors"][0]["values"])
+# print(search)
