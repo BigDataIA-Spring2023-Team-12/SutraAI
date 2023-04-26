@@ -4,6 +4,7 @@ import streamlit as st
 from google.oauth2 import service_account
 import pandas as pd
 import requests
+import base64
 import os    
 from google_auth_oauthlib.flow import Flow
 from googleapiclient.discovery import build
@@ -11,6 +12,9 @@ from google.oauth2.credentials import Credentials
 from googleapiclient.errors import HttpError
 from google_auth_oauthlib.flow import InstalledAppFlow
 import io
+import textract
+import PyPDF2
+from io import BytesIO
 from PIL import Image
 
 
@@ -251,7 +255,9 @@ def display_files_in_drive():
     """
     st.header("Files in Google Drive")
     service = get_credentials()
-    query = "mimeType='application/vnd.google-apps.folder' or mimeType!='application/vnd.google-apps.folder'"
+    # query = "mimeType='application/vnd.google-apps.folder' or mimeType!='application/vnd.google-apps.folder'"
+    query = "trashed = false and mimeType!='application/vnd.google-apps.folder'"
+
     results = service.files().list(q=query, fields="nextPageToken, files(id, name, mimeType)").execute()
     items = results.get("files", [])
 
@@ -273,3 +279,138 @@ def display_files_in_drive():
                     img_buffer = io.BytesIO(content)
                     image = Image.open(img_buffer)
                     st.image(image, caption=item['name'], use_column_width=True)
+
+
+@st.cache_data
+def get_file_data(file_id):
+    """
+    Downloads a file from Google Drive and returns its contents as bytes.
+    """
+    drive_service = get_gdrive_service()
+    file = drive_service.files().get(fileId=file_id, fields="id, name, mimeType, size").execute()
+
+    if "application/pdf" in file["mimeType"]:
+        # For PDF files, read the raw bytes of the file
+        file_bytes = drive_service.files().get_media(fileId=file_id).execute()
+        return file["name"], file_bytes
+
+    elif "application/vnd.google-apps.document" in file["mimeType"]:
+        # For Google Docs files, export to plain text format and read the text
+        export_mimetype = "text/plain"
+        file_bytes = drive_service.files().export(fileId=file_id, mimeType=export_mimetype).execute()
+        return file["name"], file_bytes.encode("utf-8")
+
+    else:
+        st.warning(f"Unsupported file type: {file['mimeType']}")
+        return None
+    # """
+    # Downloads the content of a file from Google Drive given its ID.
+    # Returns the file name and data.
+    # """
+    # drive_service = get_gdrive_service()
+    # file = drive_service.files().get(fileId=file_id).execute()
+    # file_name = file['name']
+    # export_mime_types = {
+    #     'application/vnd.google-apps.document': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    #     'application/vnd.google-apps.spreadsheet': 'text/csv'
+    # }
+    # if file['mimeType'] in export_mime_types:
+    #     export_type = export_mime_types[file['mimeType']]
+    #     export_url = f'https://www.googleapis.com/drive/v3/files/{file_id}/export?mimeType={export_type}'
+    #     response = drive_service.files().export(fileId=file_id, mimeType=export_type).execute()
+    #     file_data = response.encode('utf-8')
+    # elif file['mimeType'] == 'application/pdf':
+    #     file_data = drive_service.files().get_media(fileId=file_id).execute()
+    # else:
+    #     file_data = None
+    # return file_name, file_data
+
+
+# def process_file():
+#     """
+#     Allows the user to select a file from their Google Drive account and downloads it as plain text.
+#     """
+#     drive_service = get_gdrive_service()
+
+#     # Get a list of the user's files from Google Drive
+#     results = drive_service.files().list(
+#         pageSize=1000,
+#         fields="nextPageToken, files(id, name, mimeType)"
+#     ).execute()
+#     files = results.get("files", [])
+
+#     with st.form(key="select a file"):    
+#         # Create a select box that allows the user to choose a file
+#         selected_file = st.selectbox("Select a file", files, format_func=lambda file: file["name"])
+#         submit_button = st.form_submit_button("Process")
+
+
+#     if selected_file and submit_button:
+#         # # Download the selected file as plain text
+#         # file_id = selected_file["id"]
+#         # file_name, file_data = get_file_data(file_id)
+#         # if file_data:
+#         #     # Encode the file data as plain text
+#         #     file_text = file_data.decode("utf-8")
+#         # Encode the file data as plain text
+
+#         # Download the selected file as plain text
+#         file_id = selected_file["id"]
+#         file_name, file_data = get_file_data(file_id)
+#         if file_data:
+#             if file_name.endswith(('.docx', '.txt', '.pdf', '.csv')):
+#                 file_text = file_data.decode("utf-8")
+#             else:
+#                 file_text = textract.process(BytesIO(file_data)).decode("utf-8")
+
+#             # Download the plain text file
+#             b64_data = base64.b64encode(file_text.encode("utf-8")).decode("utf-8")
+#             href = f'<a href="data:text/plain;base64,{b64_data}" download="{file_name}">Download plain text file</a>'
+#             st.markdown(href, unsafe_allow_html=True)
+#         else:
+#             st.warning("Could not retrieve file data.")
+
+
+def process_file():
+    """
+    Allows the user to select a file from their Google Drive account and displays it as a preview.
+    """
+    drive_service = get_gdrive_service()
+
+    # Get a list of the user's files from Google Drive
+    results = drive_service.files().list(
+        pageSize=1000,
+        fields="nextPageToken, files(id, name, mimeType)"
+    ).execute()
+    files = results.get("files", [])
+
+    with st.form(key="select a file"):    
+        # Create a select box that allows the user to choose a file
+        selected_file = st.selectbox("Select a file", files, format_func=lambda file: file["name"])
+        submit_button = st.form_submit_button("Process")
+
+    if selected_file and submit_button:
+        # Download the selected file and display it as a preview
+        file_id = selected_file["id"]
+        file_name, file_data = get_file_data(file_id)
+        if file_data:
+            if file_name.endswith(('.docx', '.txt', '.pdf', '.csv')):
+                if file_name.endswith('.csv'):
+                    df = pd.read_csv(BytesIO(file_data))
+                    st.write(df)
+                elif file_name.endswith('.pdf'):
+                    pdf_reader = PyPDF2.PdfFileReader(BytesIO(file_data))
+                    pages = pdf_reader.getNumPages()
+                    for i in range(pages):
+                        page = pdf_reader.getPage(i)
+                        st.write(page.extractText())
+                else:
+                    st.write(file_data.decode("utf-8"))
+            else:
+                try:
+                    file_text = textract.process(BytesIO(file_data)).decode("utf-8")
+                    st.write(file_text)
+                except:
+                    st.warning("Could not display file preview.")
+        else:
+            st.warning("Could not retrieve file data.")

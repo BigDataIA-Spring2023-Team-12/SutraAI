@@ -9,7 +9,7 @@ from googleapiclient.errors import HttpError
 from google_auth_oauthlib.flow import InstalledAppFlow
 import io
 from PIL import Image
-from utils import create_users_table,register_user,login_user,log_queries,display_files_in_drive,get_credentials,get_gdrive_service,get_search_history,file_upload,list_files_in_drive,upload_file_to_google_drive
+from utils import create_users_table,register_user,login_user,log_queries,display_files_in_drive,get_credentials,get_gdrive_service,get_search_history,file_upload,list_files_in_drive,upload_file_to_google_drive, get_file_data, process_file
 
 os.environ["OAUTHLIB_INSECURE_TRANSPORT"] = "1"
 
@@ -49,8 +49,19 @@ def main():
 
         st.header("Connect to Google Drive")
 
-        if st.button("Connect and Display Files"):
+        # if st.button("Connect and Display Files"):
+        #     display_files_in_drive()
+
+        # elif st.button("Display Content"):
+        #     process_file()
+        selection = st.selectbox("Select an action", ["Select an option","Display Files", "Display Content"])
+
+        if selection == "Display Files":
             display_files_in_drive()
+
+        elif selection == "Display Content":
+            process_file()
+
 
 
         st.markdown("---")
