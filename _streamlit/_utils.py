@@ -14,6 +14,11 @@ import sqlite3
 from datetime import datetime
 
 
+# Connect to SQLite database
+conn = sqlite3.connect("users.db")
+c = conn.cursor()
+
+
 # Set up the OAuth flow
 SCOPES = ["https://www.googleapis.com/auth/drive.metadata.readonly"]
 FLOW = Flow.from_client_secrets_file(
