@@ -1,41 +1,34 @@
 import spacy
+nlp = spacy.load("en_core_web_sm")
 
 
-def nlp_preprocessor(text, chunk_size=100):
-    # load spaCy model
-    nlp = spacy.load("en_core_web_sm")
+def preprocess_and_chunk(text: str) -> list:
+    """
+    This function performs preprocessing on input text, including sentence splitting,
+    stop word removal, and lemmatization.
 
-    # remove stopwords and lemmatize words
-    doc = nlp(text)
-    filtered_text = [token.lemma_.lower() for token in doc if not token.is_stop and token.is_alpha]
+    Args:
+    - text (str): a string of text to be preprocessed
 
-    # split into larger chunks
+    Returns:
+    - chunks (List[str]): a list of preprocessed sentence chunks, where each chunk
+      is a string containing one or more sentences
+    """
     chunks = []
-    current_chunk = ""
-    current_chunk_size = 0
-    for sentence in doc.sents:
-        sentence_text = sentence.text.strip()
-        sentence_length = len(sentence_text.split())
 
-        # if adding the sentence would exceed the chunk size, start a new chunk
-        if current_chunk_size + sentence_length > chunk_size:
-            chunks.append(current_chunk.strip())
-            current_chunk = sentence_text
-            current_chunk_size = sentence_length
-        else:
-            current_chunk += " " + sentence_text
-            current_chunk_size += sentence_length
+    # Process the text using spaCy
+    doc = nlp(text)
 
-    # add the final chunk
-    if current_chunk:
-        chunks.append(current_chunk.strip())
+    # Iterate over the sentences in the doc
+    for sent in doc.sents:
+        # Lemmatize the tokens in the sentence, remove stop words and non-alphabetic tokens
+        tokens = [token.lemma_.lower() for token in sent if not token.is_stop and token.is_alpha]
 
-    # split each chunk on periods and commas and normalize the chunks
-    normalized_chunks = []
-    for chunk in chunks:
-        subchunks = [subchunk.strip() for subchunk in chunk.split(".") if subchunk.strip()]
-        for i, subchunk in enumerate(subchunks):
-            subchunks[i] = [subsubchunk.strip() for subsubchunk in subchunk.split(",") if subsubchunk.strip()]
-        normalized_chunks += [subchunk for subchunks in subchunks for subchunk in subchunks]
+        # Join the tokens into a string
+        sentence = " ".join(tokens)
 
-    return normalized_chunks
+        # Append the sentence to the list of chunks
+        if sentence:
+            chunks.append(sentence)
+
+    return chunks
