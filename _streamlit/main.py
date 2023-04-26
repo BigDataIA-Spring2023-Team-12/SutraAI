@@ -1,7 +1,7 @@
 import streamlit as st
 import os
 from googleapiclient.errors import HttpError
-from _utils import display_files_in_drive, process_file
+from _utils import display_files_in_drive, process_file, extract_text_from_file
 
 os.environ["OAUTHLIB_INSECURE_TRANSPORT"] = "1"
 

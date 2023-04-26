@@ -1,46 +1,44 @@
 import spacy
 
-# Load the spaCy model
-nlp = spacy.load('en_core_web_sm')
 
-# Set minimum and maximum chunk length
-MIN_PHRASE_LENGTH = 10
-MAX_PHRASE_LENGTH = 30
+def preprocess_and_chunk(text, chunk_size=100):
+    # load spaCy model
+    nlp = spacy.load("en_core_web_sm")
 
-
-def preprocess_and_chunk(text):
-    """
-    This function takes a string as input, performs NLP preprocessing using spaCy,
-    removes stop words, lemmatizes the text, and chunks it into meaningful phrases
-    using Named Entity Recognition (NER), dependency parsing, and noun chunking.
-
-    Parameters:
-    text (str): Input text to preprocess and chunk.
-
-    Returns:
-    chunks (list): List of chunks generated from the input text.
-    """
-    # Perform NLP preprocessing
+    # remove stopwords and lemmatize words
     doc = nlp(text)
+    filtered_text = [token.lemma_.lower() for token in doc if not token.is_stop and token.is_alpha]
 
-    # Remove stop words, punctuation marks, and lemmatize the text
-    tokens = [token.lemma_.lower() for token in doc if not token.is_stop and not token.is_punct]
-
-    # Convert tokens list to sentence
-    sentence = nlp(' '.join(tokens))
-
-    # Chunk the text into meaningful phrases using NER, dependency parsing, and noun chunking
+    # split into larger chunks
     chunks = []
-    for chunk in sentence.noun_chunks:
-        if MIN_PHRASE_LENGTH <= len(chunk) <= MAX_PHRASE_LENGTH:
-            chunks.append(chunk.text)
-    for token in doc:
-        if token.ent_type_ and token.ent_iob == 3 and MIN_PHRASE_LENGTH <= len(token) <= MAX_PHRASE_LENGTH:
-            chunks.append(token.text)
-        elif token.dep_ in ('ROOT', 'conj', 'appos') and MIN_PHRASE_LENGTH <= len(token) <= MAX_PHRASE_LENGTH:
-            chunks.append(token.text)
+    current_chunk = ""
+    current_chunk_size = 0
+    for sentence in doc.sents:
+        sentence_text = sentence.text.strip()
+        sentence_length = len(sentence_text.split())
 
-    return chunks
+        # if adding the sentence would exceed the chunk size, start a new chunk
+        if current_chunk_size + sentence_length > chunk_size:
+            chunks.append(current_chunk.strip())
+            current_chunk = sentence_text
+            current_chunk_size = sentence_length
+        else:
+            current_chunk += " " + sentence_text
+            current_chunk_size += sentence_length
 
+    # add the final chunk
+    if current_chunk:
+        chunks.append(current_chunk.strip())
 
-print(preprocess_and_chunk("This function takes a string as input, performs NLP preprocessing using spaCy, removes stop words, lemmatizes the text, and chunks it into meaningful phrases using Named Entity Recognition (NER), dependency parsing, and noun chunking."))
+    # split each chunk on periods and commas and normalize the chunks
+    normalized_chunks = []
+    for chunk in chunks:
+        subchunks = [subchunk.strip() for subchunk in chunk.split(".") if subchunk.strip()]
+        for i, subchunk in enumerate(subchunks):
+            subchunks[i] = [subsubchunk.strip() for subsubchunk in subchunk.split(",") if subsubchunk.strip()]
+        normalized_chunks += [subchunk for subchunks in subchunks for subchunk in subchunks]
+
+    return normalized_chunks
+
+# print(preprocess_and_chunk("A POST endpoint that takes in a string and a file name, and allows for the addition of functions to modify the string. Returns the result of the selected function."))
+

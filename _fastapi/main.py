@@ -5,6 +5,14 @@ from preprocessor import preprocess_and_chunk
 from pinecone_utils import PineconeUtils
 from decouple import config
 
+
+
+# from fastapi_utils.tasks import repeat_every
+# @app.on_event("startup")
+# @repeat_every(seconds=300)  # 1 hour
+# def reset_api_calls() -> None:
+#     reset_calls()
+    
 pinecone_utils = PineconeUtils(config("PINECONE_API_KEY"), config("PINECONE_ENV"))
 
 app = FastAPI()
