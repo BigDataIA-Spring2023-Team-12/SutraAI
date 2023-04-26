@@ -2,10 +2,13 @@ import os
 import json
 import io
 import zipfile
+import streamlit as st
 from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
-
+from google_auth_oauthlib.flow import Flow
+from googleapiclient.discovery import build
+from google_auth_oauthlib.flow import InstalledAppFlow
 
 def extract_text_from_file(file_id: str, credentials: Credentials) -> str:
     """
@@ -22,7 +25,23 @@ def extract_text_from_file(file_id: str, credentials: Credentials) -> str:
         HttpError: If there was an error loading the file from Google Drive.
 
     """
+    # Set up the OAuth flow
+    SCOPES = ["https://www.googleapis.com/auth/drive.metadata.readonly"]
+    FLOW = Flow.from_client_secrets_file(
+        "client_secret.json",
+        scopes=SCOPES,
+        redirect_uri="urn:ietf:wg:oauth:2.0:oob",
+)
 
+    
+    credentials = st.session_state.get("creds")
+    if not credentials or not credentials.valid:
+        # If there are no (valid) credentials available, let the user log in.
+        flow = InstalledAppFlow.from_client_secrets_file('client_secret.json', SCOPES)
+        credentials = flow.run_local_server(port=0)
+        st.session_state["creds"] = credentials
+
+    text = ''
     # Define the supported file extensions and their corresponding MIME types
     SUPPORTED_FILE_TYPES = {
         '.pdf': 'application/pdf',
@@ -80,6 +99,7 @@ def extract_text_from_file(file_id: str, credentials: Credentials) -> str:
         else:
             text = service.files().get_media(fileId=file_id).decode('utf-8')
 
+        st.write("TEXT:", text)
         return text
 
     except HttpError as error:
