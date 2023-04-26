@@ -37,8 +37,8 @@ async def upsert(string_input: StringInput):
     input_str = string_input.input_str
     filename = string_input.filename
 
-    modified_str = generate_embedding(preprocess_and_chunk(input_str), filename)  # Replace with function of your choice
-    # upsert_res = pinecone_utils.upsert_vectors(modified_str, "sutra-ai")
+    vectors = generate_embedding(preprocess_and_chunk(input_str), filename)  # Replace with function of your choice
+    upsert_res = pinecone_utils.upsert_vectors(vectors, "sutra-ai")
 
     # Return the modified string as the API response
-    return modified_str
+    return upsert_res

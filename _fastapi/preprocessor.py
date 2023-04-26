@@ -32,3 +32,4 @@ def preprocess_and_chunk(text: str) -> list:
             chunks.append(sentence)
 
     return chunks
+
