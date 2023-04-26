@@ -1,7 +1,8 @@
 import streamlit as st
 import os
 from googleapiclient.errors import HttpError
-from _utils import display_files_in_drive, process_file, extract_text_from_file
+from _utils import display_files_in_drive, process_file, get_file_id
+from load_from_drive import extract_text_from_file
 
 os.environ["OAUTHLIB_INSECURE_TRANSPORT"] = "1"
 
@@ -26,13 +27,22 @@ def main():
     elif menu_selection == "Access Drive":
 
         st.header("Connect to Google Drive")
-        selection = st.selectbox("Select an action", ["Select an option", "Display Files", "Display Content"])
+        selection = st.selectbox("Select an action", ["Select an option", "Display Files", "Display Content","Extract text from files"])
 
         if selection == "Display Files":
             display_files_in_drive()
         elif selection == "Display Content":
             process_file()
 
+        elif selection == "Extract text from files":
+            file_id = get_file_id()
+            st.write("File ID before function call:", file_id)
+            credentials = st.session_state.get("creds")
+            st.write("Creds before function call:", credentials)
+            text = extract_text_from_file(file_id, credentials)
+            st.write("TEXT:", text)
+
+            
         st.markdown("---")
         st.header("Query Important Information")
 

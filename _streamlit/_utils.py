@@ -2,24 +2,22 @@ import streamlit as st
 import pandas as pd
 import requests
 from google_auth_oauthlib.flow import Flow
+from googleapiclient.discovery import build
+from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
+import io
 import textract
 import PyPDF2
 from io import BytesIO
 from PIL import Image
 import sqlite3
 from datetime import datetime
-import os
-import json
-import io
-import zipfile
-from google.oauth2.credentials import Credentials
-from googleapiclient.discovery import build
-from googleapiclient.errors import HttpError
+
 
 # Connect to SQLite database
 conn = sqlite3.connect("users.db")
 c = conn.cursor()
+
 
 # Set up the OAuth flow
 SCOPES = ["https://www.googleapis.com/auth/drive.metadata.readonly"]
@@ -219,6 +217,7 @@ def process_file():
             st.warning("Could not retrieve file data.")
 
 
+
 def update_latest_refresh():
     """
     Creates or updates a SQLite database named 'latest_refresh.db' with one table named 'refresh_timestamp',
@@ -256,81 +255,30 @@ def update_latest_refresh():
     conn.close()
 
 
-@st.cache_data(experimental_allow_widgets=True)
-def extract_text_from_file(file_id: str, credentials: Credentials) -> str:
-    """
-    Extracts text from a file in Google Drive and returns it as a string.
 
-    Args:
-        file_id (str): The ID of the file to extract text from.
-        credentials (google.oauth2.credentials.Credentials): The credentials to authenticate the API request.
+def get_file_id():
+    drive_service = get_gdrive_service()
 
-    Returns:
-        str: The extracted text as a string.
+    # Get a list of the user's files from Google Drive
+    results = drive_service.files().list(
+        pageSize=1000,
+        fields="nextPageToken, files(id, name, mimeType)"
+    ).execute()
+    files = results.get("files", [])
+    file_id = 1
+    # file_id = 1
+    with st.form(key="select a file"):
+        # Create a select box that allows the user to choose a file
+        selected_file = st.selectbox("Select a file", files, format_func=lambda file: file["name"])
+        submit_button = st.form_submit_button("Extract")
+        if selected_file and submit_button:
+            # Download the selected file and display it as a preview
+            file_id = selected_file["id"]
+            # st.write(file_id)
+        
+    # st.write("File ID:", file_id)
+    return file_id
+    
 
-    Raises:
-        HttpError: If there was an error loading the file from Google Drive.
 
-    """
 
-    # Define the supported file extensions and their corresponding MIME types
-    SUPPORTED_FILE_TYPES = {
-        '.pdf': 'application/pdf',
-        '.json': 'application/json',
-        '.csv': 'text/csv',
-        '.txt': 'text/plain',
-        '.doc': 'application/msword',
-        '.docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-        '.odt': 'application/vnd.oasis.opendocument.text',
-        '.html': 'text/html'
-    }
-
-    try:
-        # Build the Google Drive API client
-        service = build('drive', 'v3', credentials=credentials)
-
-        # Get the file metadata and content
-        file = service.files().get(fileId=file_id).execute()
-
-        # Extract the file extension and MIME type
-        file_extension = os.path.splitext(file['name'])[1].lower()
-        file_mime_type = file['mimeType']
-
-        # Skip the file if it doesn't belong to the supported formats
-        if file_extension not in SUPPORTED_FILE_TYPES or file_mime_type != SUPPORTED_FILE_TYPES[file_extension]:
-            return ''
-
-        # Extract the text from the file content
-        if file_mime_type == 'application/pdf':
-            pdf_data = service.files().export(fileId=file_id, mimeType='application/pdf').execute()
-            import PyPDF2
-            with PyPDF2.PdfFileReader(io.BytesIO(pdf_data)) as pdf_reader:
-                text = ''
-                for page in pdf_reader.pages:
-                    text += page.extract_text()
-        elif file_mime_type == 'application/json':
-            json_data = service.files().get_media(fileId=file_id).execute()
-            text = json.dumps(json_data)
-        elif file_extension == '.doc':
-            doc_data = service.files().export(fileId=file_id,
-                                              mimeType='application/vnd.openxmlformats-officedocument.wordprocessingml.document').execute()
-            import docx2txt
-            with zipfile.ZipFile(io.BytesIO(doc_data)) as doc_zip:
-                text = docx2txt.process(io.BytesIO(doc_zip.read('word/document.xml')).decode('utf-8'))
-        elif file_extension == '.docx':
-            docx_data = service.files().get_media(fileId=file_id).execute()
-            import docx2txt
-            with zipfile.ZipFile(io.BytesIO(docx_data)) as docx_zip:
-                text = docx2txt.process(io.BytesIO(docx_zip.read('word/document.xml')).decode('utf-8'))
-        elif file_extension == '.html':
-            html_data = service.files().get_media(fileId=file_id).execute()
-            from bs4 import BeautifulSoup
-            soup = BeautifulSoup(html_data, 'html.parser')
-            text = soup.get_text()
-        else:
-            text = service.files().get_media(fileId=file_id).decode('utf-8')
-
-        return text
-
-    except HttpError as error:
-        raise HttpError(f"An error occurred while loading file from Google Drive: {error}")
