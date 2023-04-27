@@ -35,7 +35,7 @@ def generative_search(query):
     query_embeds = mpnet_embeddings(query)
     vec_search = pinecone_utils.search_index("sutra-ai",10,query_embeds.tolist())
     rel_chunk = [x['metadata']['chunk'] for x in vec_search['matches']]
-    prompt = f"{rel_chunk}" + f"analyze the query\n{query}"
+    prompt = f"context: {rel_chunk}" + f"question\n{query}" + "answer with neccessary information"
     response = generate_response(prompt)
     return response
 
