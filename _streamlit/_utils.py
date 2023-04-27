@@ -12,6 +12,8 @@ conn = sqlite3.connect("users.db")
 c = conn.cursor()
 
 
+
+
 # Set up the OAuth flow
 SCOPES = ["https://www.googleapis.com/auth/drive.readonly"]
 FLOW = Flow.from_client_secrets_file(
@@ -95,10 +97,27 @@ def update_latest_refresh():
     conn.close()
 
 
+def check_file_id_in_table(email, file_id):
+    conn = sqlite3.connect('users.db')
+    c = conn.cursor()
+    c.execute('SELECT * FROM file_info WHERE file_id = ? AND email = ?', (file_id, email))
+    result = c.fetchone()
+    conn.close()
+    if result:
+        return True
+    else:
+        return False
+
+def add_user_info(email, file_id):
+    conn = sqlite3.connect('users.db')
+    c = conn.cursor()
+    c.execute('INSERT INTO file_info (email, file_id) VALUES (?, ?)', (email, file_id))
+    conn.commit()
+    conn.close()
+    
+
 
 def get_file_text():
-
-
     creds=get_creds()
     drive_service = get_gdrive_service()
     folder_name = "SutraAI"
@@ -111,20 +130,24 @@ def get_file_text():
     else:
         folder_id = results1[0]['id']
         print('Folder ID: %s' % folder_id)
-
+    # get user email
+    about = drive_service.about().get(fields='user(emailAddress)').execute()
+    email_address = about['user']['emailAddress']
     # List all files in the folder
     query = "trashed = false and '" + folder_id + "' in parents"
     results = drive_service.files().list(q=query).execute().get('files', [])
-
     # Print the file names
     print('Files in folder %s:' % folder_name)
-    files = []
     for file in results:
-        files.append(file['name'])
-        res = extract_text_from_file(file['id'],creds)
-        st.write(file['name'] + " processed!")
-        st.write(res)
+        if not check_file_id_in_table(email_address,file['id']):
 
+            res = extract_text_from_file(file['id'],creds)
+            # function request to fastapi
+            add_user_info(email_address,file['id'])    
+            st.write(file['name'] + " processed!")
+            st.write(res)
+        else:
+            st.write(f"{file['name']} already uploaded!")
     return "All files uploaded"
     
 
