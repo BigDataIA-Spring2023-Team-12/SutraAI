@@ -18,7 +18,7 @@ conn = sqlite3.connect("users.db")
 c = conn.cursor()
 
 # Set up the OAuth flow
-SCOPES = ["https://www.googleapis.com/auth/drive.metadata.readonly"]
+SCOPES = ["https://www.googleapis.com/auth/drive.readonly"]
 FLOW = Flow.from_client_secrets_file(
     "client_secret.json",
     scopes=SCOPES,
@@ -47,6 +47,19 @@ def get_gdrive_service():
     # Build the Google Drive API service instance
     service = build('drive', 'v3', credentials=creds)
     return service
+
+
+@st.cache_data(experimental_allow_widgets=True)
+def get_creds():
+
+    creds = st.session_state.get("creds")
+    if not creds or not creds.valid:
+        # If there are no (valid) credentials available, let the user log in.
+        flow = InstalledAppFlow.from_client_secrets_file('client_secret.json', SCOPES)
+        creds = flow.run_local_server(port=0)
+        st.session_state["creds"] = creds
+
+    return creds
 
 
 def log_queries(user, query):
