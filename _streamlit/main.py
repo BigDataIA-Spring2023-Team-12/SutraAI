@@ -1,10 +1,21 @@
 import streamlit as st
 import os
 from googleapiclient.errors import HttpError
-from _utils import display_files_in_drive, process_file, get_file_id
+from _utils import display_files_in_drive, process_file, get_file_id,get_creds
 from load_from_drive import extract_text_from_file
+from google_auth_oauthlib.flow import Flow
+
 
 os.environ["OAUTHLIB_INSECURE_TRANSPORT"] = "1"
+
+# Set up the OAuth flow
+SCOPES = ["https://www.googleapis.com/auth/drive.readonly"]
+FLOW = Flow.from_client_secrets_file(
+    "client_secret.json",
+    scopes=SCOPES,
+    redirect_uri="urn:ietf:wg:oauth:2.0:oob",
+)
+
 
 
 def main():
@@ -37,7 +48,9 @@ def main():
         elif selection == "Extract text from files":
             file_id = get_file_id()
             st.write("File ID before function call:", file_id)
-            credentials = st.session_state.get("creds")
+            credentials = get_creds()
+            # flow = InstalledAppFlow.from_client_secrets_file('client_secret.json', SCOPES)
+            # creds = flow.run_local_server(port=0)
             st.write("Creds before function call:", credentials)
             text = extract_text_from_file(file_id, credentials)
             st.write("TEXT:", text)
