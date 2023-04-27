@@ -42,13 +42,11 @@ def main():
             text = extract_text_from_file(file_id, credentials)
             st.write("TEXT:", text)
 
-            
         st.markdown("---")
         st.header("Query Important Information")
 
         # Text box for user input
         query = st.text_input("Enter your query here")
-        
 
         # Submit button
         if st.button("Search"):

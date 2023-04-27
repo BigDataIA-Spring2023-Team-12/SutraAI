@@ -13,11 +13,9 @@ from PIL import Image
 import sqlite3
 from datetime import datetime
 
-
 # Connect to SQLite database
 conn = sqlite3.connect("users.db")
 c = conn.cursor()
-
 
 # Set up the OAuth flow
 SCOPES = ["https://www.googleapis.com/auth/drive.metadata.readonly"]
@@ -217,7 +215,6 @@ def process_file():
             st.warning("Could not retrieve file data.")
 
 
-
 def update_latest_refresh():
     """
     Creates or updates a SQLite database named 'latest_refresh.db' with one table named 'refresh_timestamp',
@@ -255,7 +252,6 @@ def update_latest_refresh():
     conn.close()
 
 
-
 def get_file_id():
     drive_service = get_gdrive_service()
 
@@ -275,10 +271,6 @@ def get_file_id():
             # Download the selected file and display it as a preview
             file_id = selected_file["id"]
             # st.write(file_id)
-        
+
     # st.write("File ID:", file_id)
     return file_id
-    
-
-
-
