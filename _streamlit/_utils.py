@@ -57,16 +57,6 @@ def get_creds():
     return creds
 
 
-def log_queries(user, query):
-    c.execute("INSERT INTO history (username, queries) VALUES (?,?)", (user, query))
-    conn.commit()
-
-
-def get_search_history(user):
-    c.execute("SELECT queries FROM history WHERE username=?", (user,))
-    results = c.fetchall()
-    return results
-
 
 def update_latest_refresh():
     """
