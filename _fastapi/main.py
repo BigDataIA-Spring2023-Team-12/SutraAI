@@ -4,6 +4,7 @@ from embeddings import generate_embedding
 from preprocessor import preprocess_and_chunk
 from pinecone_utils import PineconeUtils
 from decouple import config
+from vector_search import generative_search
 
 
 
@@ -41,4 +42,14 @@ async def upsert(string_input: StringInput):
     upsert_res = pinecone_utils.upsert_vectors(vectors, "sutra-ai")
 
     # Return the modified string as the API response
-    return upsert_res
+    return {"response": upsert_res}
+
+@app.get("/vec-search/{query}")
+async def vec_search(query):
+    """
+   
+    """
+    response = generative_search(query)
+
+    # Return the modified string as the API response
+    return {"response":response}

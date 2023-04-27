@@ -34,15 +34,13 @@ def generate_response(prompt):
 def generative_search(query):
     query_embeds = mpnet_embeddings(query)
     vec_search = pinecone_utils.search_index("sutra-ai",10,query_embeds.tolist())
-    # search_ids = [x['id'] for x in vec_search['matches']]
-    # print(search_ids)
-    # context = db_utils.get_id_text("shein_tweets",tuple(search_ids))
-    # prompt = f"{context}" + f"\n Analyze the tweets and their sentiments above and give a report on how customers are recieving the product {query}"
-    # response = generate_response(prompt)
-    return vec_search
+    rel_chunk = [x['metadata']['chunk'] for x in vec_search['matches']]
+    prompt = f"{rel_chunk}" + f"analyze the query\n{query}"
+    response = generate_response(prompt)
+    return response
 
 # print(generative_search("This is a good day"))
 
 
-create_index = pinecone_utils.initialize_index("sutra-ai",768)
-print(create_index)
+# create_index = pinecone_utils.initialize_index("sutra-ai",768)
+# print(create_index)
