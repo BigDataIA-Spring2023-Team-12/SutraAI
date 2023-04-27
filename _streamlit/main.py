@@ -61,6 +61,7 @@ def main():
 
         # Text box for user input
         query = st.text_input("Enter your query here")
+        
 
         # Submit button
         if st.button("Search"):

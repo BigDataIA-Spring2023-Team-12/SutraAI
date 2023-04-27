@@ -1,46 +1,35 @@
 import spacy
-
-# Load the spaCy model
-nlp = spacy.load('en_core_web_sm')
-
-# Set minimum and maximum chunk length
-MIN_PHRASE_LENGTH = 10
-MAX_PHRASE_LENGTH = 30
+nlp = spacy.load("en_core_web_sm")
 
 
-def preprocess_and_chunk(text):
+def preprocess_and_chunk(text: str) -> list:
     """
-    This function takes a string as input, performs NLP preprocessing using spaCy,
-    removes stop words, lemmatizes the text, and chunks it into meaningful phrases
-    using Named Entity Recognition (NER), dependency parsing, and noun chunking.
+    This function performs preprocessing on input text, including sentence splitting,
+    stop word removal, and lemmatization.
 
-    Parameters:
-    text (str): Input text to preprocess and chunk.
+    Args:
+    - text (str): a string of text to be preprocessed
 
     Returns:
-    chunks (list): List of chunks generated from the input text.
+    - chunks (List[str]): a list of preprocessed sentence chunks, where each chunk
+      is a string containing one or more sentences
     """
-    # Perform NLP preprocessing
+    chunks = []
+
+    # Process the text using spaCy
     doc = nlp(text)
 
-    # Remove stop words, punctuation marks, and lemmatize the text
-    tokens = [token.lemma_.lower() for token in doc if not token.is_stop and not token.is_punct]
+    # Iterate over the sentences in the doc
+    for sent in doc.sents:
+        # Lemmatize the tokens in the sentence, remove stop words and non-alphabetic tokens
+        tokens = [token.lemma_.lower() for token in sent if not token.is_stop and token.is_alpha]
 
-    # Convert tokens list to sentence
-    sentence = nlp(' '.join(tokens))
+        # Join the tokens into a string
+        sentence = " ".join(tokens)
 
-    # Chunk the text into meaningful phrases using NER, dependency parsing, and noun chunking
-    chunks = []
-    for chunk in sentence.noun_chunks:
-        if MIN_PHRASE_LENGTH <= len(chunk) <= MAX_PHRASE_LENGTH:
-            chunks.append(chunk.text)
-    for token in doc:
-        if token.ent_type_ and token.ent_iob == 3 and MIN_PHRASE_LENGTH <= len(token) <= MAX_PHRASE_LENGTH:
-            chunks.append(token.text)
-        elif token.dep_ in ('ROOT', 'conj', 'appos') and MIN_PHRASE_LENGTH <= len(token) <= MAX_PHRASE_LENGTH:
-            chunks.append(token.text)
+        # Append the sentence to the list of chunks
+        if sentence:
+            chunks.append(sentence)
 
     return chunks
 
-
-print(preprocess_and_chunk("This function takes a string as input, performs NLP preprocessing using spaCy, removes stop words, lemmatizes the text, and chunks it into meaningful phrases using Named Entity Recognition (NER), dependency parsing, and noun chunking."))
