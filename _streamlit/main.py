@@ -1,8 +1,7 @@
 import streamlit as st
 import os
 from googleapiclient.errors import HttpError
-from _utils import display_files_in_drive, process_file, get_file_id,get_creds
-from load_from_drive import extract_text_from_file
+from _utils import get_file_text
 from google_auth_oauthlib.flow import Flow
 
 
@@ -38,22 +37,11 @@ def main():
     elif menu_selection == "Access Drive":
 
         st.header("Connect to Google Drive")
-        selection = st.selectbox("Select an action", ["Select an option", "Display Files", "Display Content","Extract text from files"])
+        selection = st.selectbox("Choose an option", ["Select an action","Extract text from files"])
 
-        if selection == "Display Files":
-            display_files_in_drive()
-        elif selection == "Display Content":
-            process_file()
-
-        elif selection == "Extract text from files":
-            file_id = get_file_id()
-            st.write("File ID before function call:", file_id)
-            credentials = get_creds()
-            # flow = InstalledAppFlow.from_client_secrets_file('client_secret.json', SCOPES)
-            # creds = flow.run_local_server(port=0)
-            st.write("Creds before function call:", credentials)
-            text = extract_text_from_file(file_id, credentials)
-            st.write("TEXT:", text)
+        if selection == "Extract text from files":
+            get_file_text()
+            
 
             
         st.markdown("---")
