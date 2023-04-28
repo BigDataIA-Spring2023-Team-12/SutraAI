@@ -25,7 +25,7 @@ The following steps will be followed to achieve the project objectives:
 ## Links
 * Codelab Documentation - [Codelab](https://codelabs-preview.appspot.com/?file_id=1D1PtKea5EFGK7fB0Pct4My99E5_3xuOsEsCMHKwImgk#0)
 * GitHub Repository - [GitHub](https://github.com/BigDataIA-Spring2023-Team-12/SutraAI)
-* FastAPI - [Hosted FastAPI](https://codelabs-preview.appspot.com/?file_id=1D1PtKea5EFGK7fB0Pct4My99E5_3xuOsEsCMHKwImgk#0)
+* FastAPI Doc - [FastAPI](https://codelabs-preview.appspot.com/?file_id=1D1PtKea5EFGK7fB0Pct4My99E5_3xuOsEsCMHKwImgk#0)
 * Application - [Streamlit](https://github.com/BigDataIA-Spring2023-Team-12/SutraAI)
 
 ##  Technical Documentation
@@ -78,3 +78,22 @@ The following steps will be followed to achieve the project objectives:
 
 ## 👉 Conclusion
 The proposed project aims to build a smart query tool that can query multiple documents and retrieve the relevant information based on user input queries. The project will use Google Drive, vector embeddings, indexing, and GPT-3 to achieve this objective. The project will be completed in 2 weeks. The deliverables of the project will be a functional query tool with a user interface. 💻
+
+
+
+
+---
+## Team Members
+1. Harsh Shah - NUID: 002704406 - (shah.harsh7@northeastern.edu)
+2. Parva Shah - NUID: 002916822 - (shah.parv@northeastern.edu)
+3. Dev Shah - NUID: 002978981 - (shah.devs@northeastern.edu)
+
+
+
+## Undertaking
+
+> WE ATTEST THAT WE HAVEN’T USED ANY OTHER STUDENTS’ WORK IN OUR ASSIGNMENT AND ABIDE BY THE POLICIES LISTED IN THE STUDENT HANDBOOK
+**Contribution**: 
+*   Harsh Shah &emsp; :`33.33%`
+*   Parva Shah &emsp; :`33.33%`
+*   Dev Shah &emsp;   :`33.33%`
