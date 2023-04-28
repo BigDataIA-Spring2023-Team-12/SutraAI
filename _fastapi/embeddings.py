@@ -1,7 +1,5 @@
 from typing import Dict, Any
 from sentence_transformers import SentenceTransformer
-from decouple import config
-from pinecone_utils import PineconeUtils
 import time
 
 
@@ -37,9 +35,10 @@ def generate_embedding(chunks: list, file_name: str) -> Dict[str, Any]:
 
     return vectors
 
+
 def mpnet_embeddings(text):
-        model = SentenceTransformer('all-mpnet-base-v2')
+    model = SentenceTransformer('all-mpnet-base-v2')
 
-        embedding = model.encode(text,show_progress_bar=True)
+    embedding = model.encode(text, show_progress_bar=True)
 
-        return embedding
+    return embedding
