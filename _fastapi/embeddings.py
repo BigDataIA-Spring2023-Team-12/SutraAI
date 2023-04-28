@@ -35,10 +35,7 @@ def generate_embedding(chunks: list, file_name: str) -> Dict[str, Any]:
         vector = {'id': vector_id, 'values': embedding.tolist(), 'metadata': metadata}
         vectors.append(vector)
 
-    # Combine vectors into Pinecone format dictionary
-    pinecone_dict = {'vectors': vectors}
-    print(type(pinecone_dict["vectors"][0]["values"]))
-    return pinecone_dict
+    return vectors
 
 def mpnet_embeddings(text):
         model = SentenceTransformer('all-mpnet-base-v2')

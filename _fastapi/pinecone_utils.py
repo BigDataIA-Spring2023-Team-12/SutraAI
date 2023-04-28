@@ -121,7 +121,7 @@ class PineconeUtils:
         pinecone.init(api_key=self.api_key, environment=self.environment)
         index = pinecone.Index(index_name)
         upsert_response = index.upsert(vectors=vectors)
-        return upsert_response
+        return upsert_response['upserted_count']
     
     def search_index(self, index_name,topk, vector, meta_filter=None):
         pinecone.init(api_key=self.api_key, environment=self.environment)

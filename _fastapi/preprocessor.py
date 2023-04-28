@@ -30,6 +30,6 @@ def preprocess_and_chunk(text: str) -> list:
         # Append the sentence to the list of chunks
         if sentence:
             chunks.append(sentence)
-
+    print(chunks)
     return chunks
 
