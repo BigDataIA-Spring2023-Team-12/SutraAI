@@ -41,5 +41,11 @@ The following steps will be followed to achieve the project objectives:
 - `main.py`: This Python script uses Streamlit to create a web app that allows users to authenticate with Google Drive and extract text from files, as well as search for information using natural language queries. It uses the Google Drive API and OAuth2 authentication.
 - `users.db`: User Logs.
 
+## Testing
+- `fastapi_unit_tests`: The `test_generate_embedding` function tests the `generate_embedding` function from the `_fastapi.embeddings` module. It takes in a list of sentence chunks and a filename, and it tests that the expected output is generated.<br> <br>The `test_upsert` function tests the `/upsert` endpoint of a web service running on `localhost:8000`. It sends a POST request to the endpoint with some data and tests that the response contains the expected data. <br> <br>The `TestPineconeUtils` class contains several tests for the `PineconeUtils` class from the `_fastapi.pinecone_utils module`. It tests that the class methods return the expected types of objects. <br><br>The `test_preprocess_and_chunk` function tests the `preprocess_and_chunk` function from the `_fastapi.preprocessor` module. It tests that the function properly preprocesses and chunks text. <br> <br>The `test_extract_text_from_file` function tests the `extract_text_from_file` function from the `_fastapi.text_extractor` module. It tests that the function properly extracts text from files of various types.
+
+- `nlp_unit_tests`:
+- `streamlit_unit_tests`:
+
 ## 👉 Conclusion
 The proposed project aims to build a smart query tool that can query multiple documents and retrieve the relevant information based on user input queries. The project will use Google Drive, vector embeddings, indexing, and GPT-3 to achieve this objective. The project will be completed in 2 weeks. The deliverables of the project will be a functional query tool with a user interface. 💻
