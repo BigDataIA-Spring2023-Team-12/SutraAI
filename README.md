@@ -1,6 +1,6 @@
 # 🚀 SutraAI: Building a Smart Query Tool for Querying Multiple Documents 📚
 
-# 👋 Introduction
+## 👋 Introduction
 In today's world, there is a lot of textual data present in various formats, and accessing the required information from this data can be a challenging task. The proposed project aims to build a 🔍 smart query tool that can query multiple documents and retrieve the relevant information based on user input queries.
 
 ## 🎯 Objectives:
@@ -24,7 +24,7 @@ The following steps will be followed to achieve the project objectives:
 - `gitignore`: The file containing the list of packages to exclude on git push.
 - `requirements.txt`: The file containing the list of dependencies required for the project.
 
-### `_fastapi` Folder
+### _fastapi Folder
 - `Dockerfile`: This code sets up a Docker container with a FastAPI application that runs on port 8000.
 - `embeddings.py`: This code generates embeddings for a list of sentence chunks using the all-mpnet-base-v2 model from SentenceTransformers, along with metadata in Pinecone format. It also includes a function to generate embeddings for a single sentence.
 - `main.py`: This code defines a FastAPI app with endpoints to generate and search embeddings using Pinecone, preprocess input text, and handle HTTP requests for upserting vectors and performing vector search.
