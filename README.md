@@ -24,7 +24,7 @@ The following steps will be followed to achieve the project objectives:
 - `gitignore`: The file containing the list of packages to exclude on git push.
 - `requirements.txt`: The file containing the list of dependencies required for the project.
 
-### _fastapi Folder
+### _fastapi folder
 - `Dockerfile`: This code sets up a Docker container with a FastAPI application that runs on port 8000.
 - `embeddings.py`: This code generates embeddings for a list of sentence chunks using the all-mpnet-base-v2 model from SentenceTransformers, along with metadata in Pinecone format. It also includes a function to generate embeddings for a single sentence.
 - `main.py`: This code defines a FastAPI app with endpoints to generate and search embeddings using Pinecone, preprocess input text, and handle HTTP requests for upserting vectors and performing vector search.
@@ -34,5 +34,12 @@ The following steps will be followed to achieve the project objectives:
 - `text_extractor`: This function extracts text from various file formats and returns it as a string. The supported file formats are PDF, JSON, CSV, TXT, DOC, ODT, and HTML. If the file format is not supported, a ValueError is raised.
 - `vector_search`: This code provides a Python script for generating responses to user queries using GPT-3.5 model and a search index created using Pinecone API, and can be used for various natural language processing applications.
 
+### _streamlit folder
+
 ## 👉 Conclusion
 The proposed project aims to build a smart query tool that can query multiple documents and retrieve the relevant information based on user input queries. The project will use Google Drive, vector embeddings, indexing, and GPT-3 to achieve this objective. The project will be completed in 2 weeks. The deliverables of the project will be a functional query tool with a user interface. 💻
+- `gitignore`: The file containing the list of packages to exclude on git push.
+- `_utils.py`: This script fetches text from files in a specific Google Drive folder named 'SutraAI', and sends the text and filename to a FastAPI endpoint for further processing. The script also stores information about the processed files in a SQLite database. The user is required to provide valid credentials for Google Drive API authentication.
+- `load_from_drive`: This Python script defines a function named "extract_text_from_file" which takes in a Google Drive file ID and user credentials, and returns the extracted text from the file in string format. It supports various file formats including PDF, JSON, CSV, TXT, DOC, DOCX, ODT, and HTML.
+- `main.py`: This Python script uses Streamlit to create a web app that allows users to authenticate with Google Drive and extract text from files, as well as search for information using natural language queries. It uses the Google Drive API and OAuth2 authentication.
+- `users.db`: User Logs.
