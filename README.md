@@ -42,10 +42,29 @@ The following steps will be followed to achieve the project objectives:
 - `users.db`: User Logs.
 
 ## Testing
-- `fastapi_unit_tests`: The `test_generate_embedding` function tests the `generate_embedding` function from the `_fastapi.embeddings` module. It takes in a list of sentence chunks and a filename, and it tests that the expected output is generated.<br> <br>The `test_upsert` function tests the `/upsert` endpoint of a web service running on `localhost:8000`. It sends a POST request to the endpoint with some data and tests that the response contains the expected data. <br> <br>The `TestPineconeUtils` class contains several tests for the `PineconeUtils` class from the `_fastapi.pinecone_utils module`. It tests that the class methods return the expected types of objects. <br><br>The `test_preprocess_and_chunk` function tests the `preprocess_and_chunk` function from the `_fastapi.preprocessor` module. It tests that the function properly preprocesses and chunks text. <br> <br>The `test_extract_text_from_file` function tests the `extract_text_from_file` function from the `_fastapi.text_extractor` module. It tests that the function properly extracts text from files of various types.
+### Fastapi testing
+- The `test_generate_embedding` function tests the `generate_embedding` function from the `_fastapi.embeddings` module. It takes in a list of sentence chunks and a filename, and it tests that the expected output is generated.
+- The `test_upsert` function tests the `/upsert` endpoint of a web service running on `localhost:8000`. It sends a POST request to the endpoint with some data and tests that the response contains the expected data.
+- The `TestPineconeUtils` class contains several tests for the `PineconeUtils` class from the `_fastapi.pinecone_utils module`. It tests that the class methods return the expected types of objects.
+- The `test_preprocess_and_chunk` function tests the `preprocess_and_chunk` function from the `_fastapi.preprocessor` module. It tests that the function properly preprocesses and chunks text.
+- The `test_extract_text_from_file` function tests the `extract_text_from_file` function from the `_fastapi.text_extractor` module. It tests that the function properly extracts text from files of various types.
 
-- `nlp_unit_tests`:
-- `streamlit_unit_tests`:
+### NLP testing:
+- This is a script that tests the functionality of three functions: `generate_embedding`, `preprocess_and_chunk`, and `extract_text_from_file`, and prints a message indicating that all test cases have passed. 
+
+### Streamlit testing:
+- The `test_create_users_table` function tests if the function `create_users_table` is able to create the 'users' table in the database.
+- The `test_register_user` function tests if the function `register_user` is able to add a new user to the 'users' table in the database.
+- The `test_login_user` function tests if the function `login_user` is able to correctly set the session state variable username when a user logs in.
+- The `test_log_queries` function tests if the function `log_queries` is able to add a new query to the 'history' table in the database.
+- The `test_get_search_history` function tests if the function `get_search_history` is able to retrieve the search history for a particular user from the 'history' table in the database.
+- The `test_get_credentials` function tests if the function `get_credentials` is able to retrieve valid Google Drive API credentials.
+- The `test_list_files_in_drive` function tests if the function `list_files_in_drive` is able to correctly list the files in the user's Google Drive and print the output to the Streamlit app. This function uses a mock service object to simulate the results of the Google Drive API.
+
+
+
+
+
 
 ## 👉 Conclusion
 The proposed project aims to build a smart query tool that can query multiple documents and retrieve the relevant information based on user input queries. The project will use Google Drive, vector embeddings, indexing, and GPT-3 to achieve this objective. The project will be completed in 2 weeks. The deliverables of the project will be a functional query tool with a user interface. 💻

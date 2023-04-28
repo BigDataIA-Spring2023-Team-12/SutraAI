@@ -100,9 +100,7 @@ class TestFunctions(unittest.TestCase):
         self.assertIsNotNone(service)
         self.assertTrue(service._http.request.credentials.valid)
 
-
-
-    def test_list_files_in_drive():
+    def test_list_files_in_drive(self):
         # Create a mock service object
         mock_service = MagicMock()
 
@@ -129,6 +127,7 @@ class TestFunctions(unittest.TestCase):
         assert mock_write.call_args_list[1][0][0] == "Folder: Folder1"
         assert mock_write.call_args_list[2][0][0] == "File: File1"
         assert mock_write.call_args_list[3][0][0] == "Folder: Folder2"
+
 
 if __name__ == '__main__':
     unittest.main()
