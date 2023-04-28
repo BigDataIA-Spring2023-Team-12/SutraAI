@@ -28,6 +28,9 @@ The following steps will be followed to achieve the project objectives:
 * FastAPI Doc - [FastAPI](http://54.86.128.1:8000/docs)
 * Application - [Streamlit](https://bigdataia-spring2023-team-12-sutraai-streamlit-main-soxlc4.streamlit.app/)
 
+## DEMO
+https://www.loom.com/share/7acfe826f1ed4a1abf0a4d4888a4633b
+
 ##  Technical Documentation
 ### Project Root
 - `README.md`: The main documentation file for the project.
