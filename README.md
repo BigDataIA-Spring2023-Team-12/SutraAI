@@ -18,6 +18,15 @@ The following steps will be followed to achieve the project objectives:
 - Use GPT-3 to summarize the retrieved context and provide a concise and accurate response to the user's query. GPT-3 will also be used for phrasing and question-answering to provide a more natural language response.
 - Build a user interface that allows the user to input queries and displays the relevant response.
 
+##  Architecture
+![SutraAI drawio](https://user-images.githubusercontent.com/114712818/235237787-91f48373-3533-441c-a390-5d95b7ddae66.png)
+
+
+## Links
+* Codelab Documentation - [Codelab](https://codelabs-preview.appspot.com/?file_id=1D1PtKea5EFGK7fB0Pct4My99E5_3xuOsEsCMHKwImgk#0)
+* GitHub Repository - [GitHub](https://github.com/BigDataIA-Spring2023-Team-12/SutraAI)
+
+
 ##  Technical Documentation
 ### Project Root
 - `README.md`: The main documentation file for the project.
