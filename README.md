@@ -19,7 +19,7 @@ The following steps will be followed to achieve the project objectives:
 - Build a user interface that allows the user to input queries and displays the relevant response.
 
 ##  Architecture
-![SutraAI drawio](https://user-images.githubusercontent.com/114712818/235237787-91f48373-3533-441c-a390-5d95b7ddae66.png)
+![Big-Data Final Project drawio (4)](https://user-images.githubusercontent.com/114712818/235254668-535502ca-75a3-4889-851d-02609b75a20f.png)
 
 
 ## Links
