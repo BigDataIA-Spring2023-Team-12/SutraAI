@@ -6,6 +6,7 @@ from google_auth_oauthlib.flow import InstalledAppFlow
 import sqlite3
 from datetime import datetime
 from load_from_drive import extract_text_from_file
+import requests
 
 # Connect to SQLite database
 conn = sqlite3.connect("users.db")
@@ -140,16 +141,34 @@ def get_file_text():
     print('Files in folder %s:' % folder_name)
     for file in results:
         if not check_file_id_in_table(email_address,file['id']):
-
-            res = extract_text_from_file(file['id'],creds)
+            text = extract_text_from_file(file['id'],creds)
+            print(text)
+            print(type(text))
             # function request to fastapi
-            add_user_info(email_address,file['id'])    
-            st.write(file['name'] + " processed!")
-            st.write(res)
+            url = "http://localhost:8000/upsert/"  # Replace with the actual URL of the endpoint
+            data = {
+                "input_str": f"{text}",
+                "filename": f"{file['name']}"
+            }
+            response = requests.post(url, json=data)
+
+            if response.status_code == 200:
+                add_user_info(email_address,file['id'])    
+                st.write(file['name'] + " processed!")
+            else:
+                st.error(f"Error uploading file: {file['name']} ")
         else:
             st.write(f"{file['name']} already uploaded!")
     return "All files uploaded"
     
 
+def generative_search(query):
+    url = f'http://127.0.0.1:8000/vec-search/{query}'
+    headers = {'accept': 'application/json'}
+    response = requests.get(url, headers=headers)
+    if response.status_code == 200:
+        st.write(response.json()["response"])
+    else:
+        st.error("Error searching query") 
 
 

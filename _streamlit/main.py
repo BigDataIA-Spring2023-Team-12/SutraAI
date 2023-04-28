@@ -1,7 +1,7 @@
 import streamlit as st
 import os
 from googleapiclient.errors import HttpError
-from _utils import get_file_text
+from _utils import get_file_text, generative_search
 from google_auth_oauthlib.flow import Flow
 
 
@@ -51,15 +51,9 @@ def main():
 
         # Submit button
         if st.button("Search"):
-            try:
-                # log_queries(user,query)
-
-                # TODO: implement search functionality using query and Google Drive API
-
-                results = []
-                st.write(results)
-            except HttpError:
-                st.error("Unable to retrieve search results.")
+            generative_search(query)
+                
+            
 
         st.markdown("---")
 
