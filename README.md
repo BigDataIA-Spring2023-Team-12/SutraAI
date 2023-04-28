@@ -19,7 +19,7 @@ The following steps will be followed to achieve the project objectives:
 - Build a user interface that allows the user to input queries and displays the relevant response.
 
 ##  Architecture
-![Big-Data Final Project drawio (4)](https://user-images.githubusercontent.com/114712818/235254668-535502ca-75a3-4889-851d-02609b75a20f.png)
+![SutraAI drawio](https://user-images.githubusercontent.com/114712818/235237787-91f48373-3533-441c-a390-5d95b7ddae66.png)
 
 
 ## Links
@@ -94,6 +94,6 @@ The proposed project aims to build a smart query tool that can query multiple do
 
 > WE ATTEST THAT WE HAVEN’T USED ANY OTHER STUDENTS’ WORK IN OUR ASSIGNMENT AND ABIDE BY THE POLICIES LISTED IN THE STUDENT HANDBOOK
 **Contribution**: 
-*   Harsh Shah &emsp; :`33.33%`
-*   Parva Shah &emsp; :`33.33%`
-*   Dev Shah &emsp;   :`33.33%`
+*   Harsh Shah &emsp; :`33.33%` - Streamlit Hosting, Google Drive Authorization - Partially Complete.
+*   Parva Shah &emsp; :`33.33%` - Pinecone Data Upsertion, Query Processing, Prompt Engineering, OpenAI setup - Fully Complete. 
+*   Dev Shah &emsp;   :`33.33%` - FastAPI, NLP Preprocessor, Vector Embeddings and Pinecone Data Engineering - Fully Complete.
