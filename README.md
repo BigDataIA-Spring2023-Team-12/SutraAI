@@ -8,14 +8,14 @@ The primary objectives of this project are to:
 - 🏗️ Develop a backend that connects to Google Drive and allows users to upload their files and transcripts.
 - 🤖 Build vector embeddings and indexing on the textual data for efficient querying.
 - 🔎 Retrieve the relevant context from the data based on user input queries.
-- 🧠 Use GPT-3 for summarization, phrasing, and question-answering to provide the user with a concise and accurate response.
+- 🧠 Use GPT-3.5 Turbo for summarization, phrasing, and question-answering to provide the user with a concise and accurate response.
 
 ## 📝 Methodology
 The following steps will be followed to achieve the project objectives:
 - Build a backend that connects to Google Drive and allows users to upload their files and transcripts. The backend will also provide an API for data retrieval.
 - Develop vector embeddings and indexing on the textual data to improve the efficiency of querying.
 - Use the vector embeddings and indexing to retrieve the relevant context from the data based on user input queries.
-- Use GPT-3 to summarize the retrieved context and provide a concise and accurate response to the user's query. GPT-3 will also be used for phrasing and question-answering to provide a more natural language response.
+- Use GPT-3.5 Turbo to summarize the retrieved context and provide a concise and accurate response to the user's query. GPT-3 will also be used for phrasing and question-answering to provide a more natural language response.
 - Build a user interface that allows the user to input queries and displays the relevant response.
 
 ##  Architecture
@@ -41,7 +41,7 @@ https://www.loom.com/share/7acfe826f1ed4a1abf0a4d4888a4633b
 - `Dockerfile`: This code sets up a Docker container with a FastAPI application that runs on port 8000.
 - `embeddings.py`: This code generates embeddings for a list of sentence chunks using the all-mpnet-base-v2 model from SentenceTransformers, along with metadata in Pinecone format. It also includes a function to generate embeddings for a single sentence.
 - `main.py`: This code defines a FastAPI app with endpoints to generate and search embeddings using Pinecone, preprocess input text, and handle HTTP requests for upserting vectors and performing vector search.
-- `pinecone_utils`: This code provides utility functions for working with Pinecone, a vector search service, including creating embeddings with OpenAI's GPT-3 model, initializing and upserting vectors to an index, and searching an index.
+- `pinecone_utils`: This code provides utility functions for working with Pinecone, a vector search service, including creating embeddings with OpenAI's GPT-3.5 turbo model, initializing and upserting vectors to an index, and searching an index.
 - `preprocessor`: This Python function preprocesses input text by performing sentence splitting, stop word removal, and lemmatization, and returns a list of preprocessed sentence chunks.
 - `requirements.txt`: This is a list of Python packages and their versions that are required for FastAPI to run.
 - `text_extractor`: This function extracts text from various file formats and returns it as a string. The supported file formats are PDF, JSON, CSV, TXT, DOC, ODT, and HTML. If the file format is not supported, a ValueError is raised.
