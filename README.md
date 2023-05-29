@@ -26,7 +26,7 @@ The following steps will be followed to achieve the project objectives:
 * Codelab Documentation - [Codelab](https://codelabs-preview.appspot.com/?file_id=1D1PtKea5EFGK7fB0Pct4My99E5_3xuOsEsCMHKwImgk#0)
 * GitHub Repository - [GitHub](https://github.com/BigDataIA-Spring2023-Team-12/SutraAI)
 * FastAPI Doc - [FastAPI](http://54.86.128.1:8000/docs)
-* Application - [Streamlit](https://bigdataia-spring2023-team-12-sutraai-streamlit-main-soxlc4.streamlit.app/)
+* Application - [Streamlit](https://onsite-planning.streamlit.app/)
 
 ## DEMO
 https://www.loom.com/share/7acfe826f1ed4a1abf0a4d4888a4633b
